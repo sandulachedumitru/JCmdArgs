@@ -11,22 +11,119 @@ cmd general rule:
 		arguments_number=			-> the number of arguments allowed
 
 
-
-
-[[!]{--<optionLong>,-<optionShort>}[={<value>}]] [<command>] [<argument>] [<arguments_number>] {<argument>}
-
-option=[[!]{--<optionLong>,-<optionShort>}[={<list of values separated by comma>}]] argument=[<argument>] arguments_number=[<number>] precedence={option, command, arguments_number, argument}
-
-
-option=[[!]{--<optionLong>,-<optionShort>}[={<list of values separated by comma>}]]
+General form proposal:
+======================
+{option, command, arguments_number, argument}
+option=<option name>([[!]{--<optionLong>,-<optionShort>}[={}]])
 command=[<command>]
 argument=[<argument>]
 arguments_number=[<number>]
-precedence={option, command, arguments_number, argument}
+
+Example 1 proposal:
+-------------------
+{option, command, arguments_number, argument}
+option=HELP(!{--help,-h})
+option=DEBUG({--debug,-d}={enable,disable})
+option=PRINT_TO({--print-to,-pt}={Logs.txt,#})
+option=WITH_ROOT_PATH({--with-rootPath}={enable,disable})				-> no short version option
+command=clone
+arguments_number=1
+argument=#																-> # mandatory user input
+argument=something -> will be ignored because arguments_number==1
 
 
 
-option=[[!]{--<optionLong>,-<optionShort>}[={<value}]] argument=[<argument>] arguments_number=[<number>] precedenceAndOrder={<argument>}
-{<argument>} option=[[!]{--<optionLong>,-<optionShort>}[={<value>}]] command=[<command>] parameter=[<parameter>] parameter_number=[<number>]
+General form:
+=============
+{option, command, arguments_number, argument} option=[[!]{--<optionLong>,-<optionShort>}[={}]] command=[<command>] argument=[<argument>] arguments_number=[<number>]
+or
+{option, command, arguments_number, argument}
+option=[[!]{--<optionLong>,-<optionShort>}[={}]]
+command=[<command>]
+argument=[<argument>]
+arguments_number=[<number>]
 
-{} option=[[!]{--<optionLong>,-<optionShort>}[={}]] command=[<command>] parameter=[<parameter>] parameter_number=[<number>]
+
+Example 1:
+----------
+{option, command, arguments_number, argument}
+option=!{--help,-h}
+option={--debug,-d}={enable,disable}
+option={--print-to,-pt}={Logs.txt,#}
+option={--with-rootPath}={enable,disable}								-> no short version option
+command=clone
+arguments_number=2
+argument=https://github.com/sandulachedumitru/JCmdArgs.git
+argument=#																-> # mandatory user input
+argument=something -> will be ignored because arguments_number==2
+
+Example 2:
+----------
+$ git clone https://github.com/sandulachedumitru/JCmdArgs.git
+{command, arguments_number, argument}
+command=clone
+arguments_number=1
+argument=#
+argument=something -> will be ignored because arguments_number==1
+
+Example 3:
+----------
+$ sudoku --debug=enable -pt SudokuInputFile.txt
+$ sudoku --d=enable --print-to=SudokuLog.log SudokuInputFile.txt
+$ sudoku --d=enable --print-to=SudokuLog.log
+{option, arguments_number, argument}
+option=!{--help,-h}
+option={--debug,-d}={enable,disable}
+option={--print-to,-pt}={Logs.txt,#}
+arguments_number=1
+argument=sudokufile.txt
+
+
+options form:
+=============
+--option
+--option=value
+-o
+-o=value
+--option{(-something)xN}
+	--option-something1
+	--option-something1=value
+	--option-something1-something2
+	--option-something1-something2=value
+	...
+
+
+options description manual (help); ex:
+======================================
+--help,		-h		-> help.help
+--debug,	-d		-> debug.help
+--print-to,	-pt		-> print-to.help
+
+
+options/arguments special symbol
+================================
+#		-> mandatory user input
+!		-> single option, other options are not allowed
+
+
+arguments form:
+===============
+argument=<default value>	-> NOT mandatory; user input OR dafault value
+argument=#					-> mandatory; user input; no default value provided for argument
+
+Example 1:
+-----------
+argument=sudokufile.txt		-> NOT mandatory (because it has default value); user input OR dafault value
+
+$ sudoku --d=enable --print-to=SudokuLog.log SudokuInputFile.txt
+	- "SudokuInputFile.txt" argument overrides default "sudoku.txt" argument
+$ sudoku --d=enable --print-to=SudokuLog.log
+	- argument has default value "sudokufile.txt"
+
+
+Example 2:
+----------
+argument=#	-> mandatory; user input; no default value provided for argument
+
+$ git clone https://github.com/sandulachedumitru/JCmdArgs.git
+	- user must input value for the argument because is mandatory
