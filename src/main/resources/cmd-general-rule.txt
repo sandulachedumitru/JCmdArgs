@@ -1,37 +1,4 @@
-cmd general rule:
-	[[!]--<option>[={<value1>,<value2>, ...}]] [<command>] [<argument>] [<arguments_number>] {option, command, arguments_number, argument}
-	option=[[!]--<option>[={<value1>,<value2>, ...}]] command=[<command>] argument=[<argument>] arguments_number=[<number>] precedences={option, command, arguments_number, argument}
-		[]                          -> is optional
-		={value1,value2, ...}       -> the list of supported values of the option
-		<something>                 -> replace with real word
-		!							-> cannot support other option; is alone
-		option=						-> defines an option
-		command=					-> defines a command
-		argument=					-> defines an argument
-		arguments_number=			-> the number of arguments allowed
-
-
-General form proposal:
-======================
-{option, command, arguments_number, argument}
-option=<option name>([[!]{--<optionLong>,-<optionShort>}[={}]])
-command=[<command>]
-argument=[<argument>]
-arguments_number=[<number>]
-
-Example 1 proposal:
--------------------
-{option, command, arguments_number, argument}
-option=HELP(!{--help,-h})
-option=DEBUG({--debug,-d}={enable,disable})
-option=PRINT_TO({--print-to,-pt}={Logs.txt,#})
-option=WITH_ROOT_PATH({--with-rootPath}={enable,disable})				-> no short version option
-command=clone
-arguments_number=1
-argument=#																-> # mandatory user input
-argument=something -> will be ignored because arguments_number==1
-
-
+The engine that parses command-line arguments will look for the definition file that is defined in the application.properties file.
 
 General form:
 =============
@@ -42,6 +9,19 @@ option=[[!]{--<optionLong>,-<optionShort>}[={}]]
 command=[<command>]
 argument=[<argument>]
 arguments_number=[<number>]
+
+syntax description
+------------------
+		[]                          -> is optional
+		{<value1>,<value2>, ...}	-> the list of supported values of the option
+		{}							-> list of variable size
+		<something>                 -> replace with real word
+		!							-> cannot support other option; is alone
+		#							-> mandatory user input
+		option=						-> defines an option
+		command=					-> defines a command
+		argument=					-> defines an argument
+		arguments_number=			-> the number of arguments allowed
 
 
 Example 1:
