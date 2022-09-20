@@ -1,13 +1,24 @@
-# JCmdArgs
+> # JCmdArgs
 
 ## Java Command Line Arguments Processor
 
-### cmd general rule:
+### General form:
 
-### `[[!]--<option>[={<value1>,<value2>, ...}]] [<command>] [<argument>] [<arguments_number>] {option, command, arguments_number, argument}`
+`{option, command, arguments_number, argument}`
+`option=[[!]{--<optionLong>,-<optionShort>}[={}]]`
+`command=[<command>]`
+`argument=[<argument>]`
+`arguments_number=[<number>]`
+### `OR`
+### `{option, command, arguments_number, argument}`
+### `option=[[!]{--<optionLong>,-<optionShort>}[={}]]`
+### `command=[<command>]`
+### `argument=[<argument>]`
+### `arguments_number=[<number>]`
 
-### `option=[[!]--<option>[={<value1>,<value2>, ...}]] command=[<command>] argument=[<argument>] arguments_number=[<number>] precedences={option, command, arguments_number, argument}`
+> **NOTE**: No space character will be allowed inside element
 
+## Special characters
 | Symbol                  | Description                                         |
 |-------------------------|-----------------------------------------------------|
 | `[]`                    | `is optional`                                       |
