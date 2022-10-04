@@ -1,0 +1,22 @@
+cmdline:
+  app-name: CmdLineArgs
+  file:
+    path-to-resources: /cmd-line/
+    path-to-help-files: /help-files/ # src/main/resources/cmd-line/help-files
+    definition-file: cmdline-definition.jca
+    default-input-file: default-input-file.txt
+  properties:
+    global:
+      option:
+        prefix:
+          name:
+            long: "--"
+            short: "-"
+  regex:
+    option:
+      name: # OR ^(--([a-zA-Z]+[^0-9\\W]))(=(\\w+))?$
+        long: ^(--([a-zA-Z]+[^0-9\W]))(=((\w+)(\.([a-zA-Z0-9]+))?))?$
+        short: ^(--([a-zA-Z]+[^0-9\W]))(=((\w+)(\.([a-zA-Z0-9]+))?))?$
+    parameter: # OR ^([a-zA-Z0-9]+)(\\.([a-zA-Z0-9]+))?$
+      file: ^(\w+)(\.([a-zA-Z0-9]+))?$
+      anything: ^(\w+)?$
