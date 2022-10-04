@@ -1,11 +1,6 @@
 package com.hardcodacii.jcmdargs.cmdLine;
 
-import com.hardcodacii.global.SystemEnvironmentVariable;
-import com.hardcodacii.utils.cmdLine.performActions.CmdOptionPerformAction;
-import com.hardcodacii.utils.cmdLine.performActions.option.Debug;
-import com.hardcodacii.utils.cmdLine.performActions.option.Help;
-import com.hardcodacii.utils.cmdLine.performActions.option.PrintTo;
-import com.hardcodacii.utils.cmdLine.performActions.parameter.Parameter;
+import com.hardcodacii.jcmdargs.global.SystemEnvironmentVariable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -24,7 +19,7 @@ import java.util.regex.Pattern;
 public class CommandLineParametersService {
 
 	private static final String APP_NAME = SystemEnvironmentVariable.APP_NAME;
-	private static final String CMD_OPTION_PREFIX = SystemEnvironmentVariable.CMD_OPTION_PREFIX;
+	private static final String CMD_OPTION_PREFIX = SystemEnvironmentVariable.REGEX_OPTION_LONG;
 
 	public static void main(String... args) {
 		System.out.println(CmdOptionsDefinition.sanitizeSingleSupportedOptionValue("-=ena bl -e+"));
