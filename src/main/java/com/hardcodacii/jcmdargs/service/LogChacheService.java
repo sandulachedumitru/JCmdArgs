@@ -1,41 +1,19 @@
 package com.hardcodacii.jcmdargs.service;
 
-import org.springframework.stereotype.Component;
-
 /**
  * @author Dumitru Săndulache (sandulachedumitru@hotmail.com)
  */
 
-@Component
-public class LogChacheService {
-	private String CRLF = "\r\n";
-	private String ERROR = " -ERROR:";
+public interface LogChacheService {
+	void showln(Object obj);
 
-	private StringBuilder logCache = new StringBuilder();
+	void show(Object obj);
 
-	public void showln(Object obj) {
-		logCache.append(obj.toString());
-		logCache.append(CRLF);
-	}
+	void showlnErr(Object obj);
 
-	public void show(Object obj) {
-		logCache.append(obj.toString());
-	}
+	void showErr(Object obj);
 
-	public void showlnErr(Object obj) {
-		logCache.append(ERROR + obj.toString());
-		logCache.append(CRLF);
-	}
+	StringBuilder getLogCache();
 
-	public void showErr(Object obj) {
-		logCache.append(ERROR + obj.toString());
-	}
-
-	public StringBuilder getLogCache() {
-		return logCache;
-	}
-
-	public String getErrorSuffix() {
-		return ERROR;
-	}
+	String getErrorPrefix();
 }

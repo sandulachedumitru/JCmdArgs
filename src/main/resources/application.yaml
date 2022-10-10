@@ -5,6 +5,7 @@ cmdline:
     path-to-help-files: /help-files/ # src/main/resources/cmd-line/help-files
     definition-file: cmdline-definition.jca
     default-input-file: default-input-file.txt
+    default-output-file: default-output-file.txt
   properties:
     global:
       option:
@@ -20,3 +21,26 @@ cmdline:
     parameter: # OR ^([a-zA-Z0-9]+)(\\.([a-zA-Z0-9]+))?$
       file: ^(\w+)(\.([a-zA-Z0-9]+))?$
       anything: ^(\w+)?$
+  log:
+    paragraph:
+      crlf: \r\n
+      tab: \t
+    error:
+      prefix: "ERROR: "
+    section:
+      delimiter:
+        minus: "------------------------------------------------------------------"
+        equal: "=================================================================="
+  display-service:
+    message-with-param:
+      file-exist:
+        file-exist: The file/folder \"{}\" exists.
+        file-not-exist: The file/folder \"{}\" does not exist
+        is-folder: \"{}\" is a directory. Need a file.
+        is-file: \"{}\" is a file.
+      write-to-file:
+        successful: Successful write to file.
+        failed: Failed to write to file.
+      read-from-file:
+        successful: Successful read from file.
+        failed: Failed to read from file.

@@ -20,6 +20,8 @@ public class SystemEnvironmentVariable {
 	public static String FILE_DEFINITION;
 	@Value("${cmdline.file.default-input-file}")
 	public static String FILE_DEFAULT_INPUT;
+	@Value("${cmdline.file.default-output-file}")
+	public static String FILE_DEFAULT_OUTPUT;
 
 	@Value("${cmdline.properties.global.option.prefix.name.long}")
 	public static String OPTION_LONG_PREFIX;
@@ -34,4 +36,15 @@ public class SystemEnvironmentVariable {
 	public static String REGEX_PARAMETER_FILE;
 	@Value("${cmdline.regex.parameter.anything}")
 	public static String REGEX_PARAMETER_ANYTHING;
+
+	@Value("${cmdline.log.paragraph.crlf}")
+	public static String LOG_PARAGRAPH_CRLF;
+	@Value("${cmdline.log.paragraph.tab}")
+	public static String LOG_PARAGRAPH_TAB;
+	@Value("${cmdline.log.error.prefix}")
+	public static String LOG_ERROR_PREFIX;
+	@Value("${cmdline.log.section.delimiter.minus}")
+	public static String LOG_SECTION_DELIMITER_MINUS;
+	@Value("${cmdline.log.section.delimiter.equal}")
+	public static String LOG_SECTION_DELIMITER_EQUAL;
 }
