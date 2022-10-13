@@ -47,4 +47,21 @@ public class SystemEnvironmentVariable {
 	public static String LOG_SECTION_DELIMITER_MINUS;
 	@Value("${cmdline.log.section.delimiter.equal}")
 	public static String LOG_SECTION_DELIMITER_EQUAL;
+
+	@Value("${cmdline.service.display-service.message-with-param.file-exist.file-exist}")
+	public static String SERVICE_DISPLAY_MESSAGE_FILEEXIST_FILEEXIST;
+	@Value("${cmdline.service.display-service.message-with-param.file-exist.file-not-exist}")
+	public static String SERVICE_DISPLAY_MESSAGE_FILEEXIST_FILENOTEXIST;
+	@Value("${cmdline.service.display-service.message-with-param.file-exist.is-folder}")
+	public static String SERVICE_DISPLAY_MESSAGE_FILEEXIST_ISFOLDER;
+	@Value("${cmdline.service.display-service.message-with-param.file-exist.is-file}")
+	public static String SERVICE_DISPLAY_MESSAGE_FILEEXIST_ISFILE;
+	@Value("${cmdline.service.display-service.message-with-param.write-to-file.successful}")
+	public static String SERVICE_DISPLAY_MESSAGE_WRITETOFILE_SUCCESSFUL;
+	@Value("${cmdline.service.display-service.message-with-param.write-to-file.failed}")
+	public static String SERVICE_DISPLAY_MESSAGE_WRITETOFILE_FAILED;
+	@Value("${cmdline.service.display-service.message-with-param.read-from-file.successful}")
+	public static String SERVICE_DISPLAY_MESSAGE_READFROMFILE_SUCCESSFUL;
+	@Value("${cmdline.service.display-service.message-with-param.read-from-file.failed}")
+	public static String SERVICE_DISPLAY_MESSAGE_READFROMFILE_FAILED;
 }
