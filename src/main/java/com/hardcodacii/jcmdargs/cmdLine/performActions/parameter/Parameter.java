@@ -1,6 +1,6 @@
 package com.hardcodacii.jcmdargs.cmdLine.performActions.parameter;
 
-import com.hardcodacii.utils.cmdLine.performActions.CmdOptionPerformAction;
+import com.hardcodacii.jcmdargs.cmdLine.performActions.CmdOptionPerformAction;
 
 /**
  * @author Dumitru Săndulache (sandulachedumitru@hotmail.com)

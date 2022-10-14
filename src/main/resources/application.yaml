@@ -35,10 +35,10 @@ cmdline:
     display-service:
       message-with-param:
         file-exist:
-          file-exist: The file/folder \"{}\" exists.
-          file-not-exist: The file/folder \"{}\" does not exist
-          is-folder: \"{}\" is a directory. Need a file.
-          is-file: \"{}\" is a file.
+          file-exist: 'The file/folder "{}" exists.'
+          file-not-exist: 'The file/folder "{}" does not exist'
+          is-folder: '"{}" is a directory. Need a file.'
+          is-file: '"{}" is a file.'
         write-to-file:
           successful: Successful write to file.
           failed: Failed to write to file.

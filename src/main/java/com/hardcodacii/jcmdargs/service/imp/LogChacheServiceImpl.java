@@ -1,24 +1,30 @@
 package com.hardcodacii.jcmdargs.service.imp;
 
+import com.hardcodacii.jcmdargs.global.SystemEnvironmentVariable;
 import com.hardcodacii.jcmdargs.service.LogChacheService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import static com.hardcodacii.jcmdargs.global.SystemEnvironmentVariable.*;
 
 /**
  * @author Dumitru Săndulache (sandulachedumitru@hotmail.com)
  */
 
 @Service
+@RequiredArgsConstructor
 public class LogChacheServiceImpl implements LogChacheService {
-	private String CRLF = LOG_PARAGRAPH_CRLF;
-	private String ERROR = LOG_ERROR_PREFIX;
+	private final SystemEnvironmentVariable environment;
+	private String CRLF() {
+		return environment.LOG_PARAGRAPH_CRLF;
+	}
+	private String ERROR() {
+		return environment.LOG_ERROR_PREFIX;
+	}
 
 	private StringBuilder logCache = new StringBuilder();
 
 	public void showln(Object obj) {
 		logCache.append(obj.toString());
-		logCache.append(CRLF);
+		logCache.append(CRLF());
 	}
 
 	public void show(Object obj) {
@@ -26,12 +32,12 @@ public class LogChacheServiceImpl implements LogChacheService {
 	}
 
 	public void showlnErr(Object obj) {
-		logCache.append(ERROR + obj.toString());
-		logCache.append(CRLF);
+		logCache.append(ERROR() + obj.toString());
+		logCache.append(CRLF());
 	}
 
 	public void showErr(Object obj) {
-		logCache.append(ERROR + obj.toString());
+		logCache.append(ERROR() + obj.toString());
 	}
 
 	public StringBuilder getLogCache() {
@@ -39,6 +45,6 @@ public class LogChacheServiceImpl implements LogChacheService {
 	}
 
 	public String getErrorPrefix() {
-		return ERROR;
+		return ERROR();
 	}
 }
