@@ -2,9 +2,14 @@ package com.hardcodacii.jcmdargs.service.imp;
 
 import com.hardcodacii.jcmdargs.service.DisplayService;
 import com.hardcodacii.jcmdargs.service.FileIOService;
+import com.hardcodacii.jcmdargs.service.LogProcessorService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.*;
 
@@ -16,6 +21,7 @@ import java.nio.file.*;
 @RequiredArgsConstructor
 public class FileIOServiceImpl implements FileIOService {
 	private final DisplayService displayService;
+	private final LogProcessorService logProcessorService;
 
 	@Override
 	public boolean fileExists(String path) {
@@ -39,6 +45,34 @@ public class FileIOServiceImpl implements FileIOService {
 	}
 
 	@Override
+	public boolean fileExistsInResources(String path) {
+		Resource resource = new ClassPathResource(path);
+//		boolean fileExists = false;
+
+		try {
+			return fileExists(resource.getFile().getPath());
+		} catch (IOException e) {
+			displayService.showln(logProcessorService.processLogs("There was an exception when trying to access the file \"{}\".", path));
+			e.printStackTrace();
+			return false;
+		}
+
+//		if (resource.exists()) {
+//			displayService.showln("The file/directory \"" + resource.getFilename() + "\" exists");
+//			// check whether it is a file or a directory
+//			if (resource.isFile()) {
+//				displayService.showln("\"" + resource.getFilename() + "\" is a file");
+//				fileExists = true;
+//			} else {
+//				displayService.showlnErr("\"" + resource.getFilename() + "\" is a directory. Need a file.");
+//			}
+//		} else
+//			displayService.showlnErr("The file \"" + resource.getFilename() + "\" does not exist");
+//
+//		return fileExists;
+	}
+
+	@Override
 	public boolean writeStringToFile(String path) {
 		Path filePath = Paths.get(path);
 		boolean isSuccessfulWriting = false;
@@ -56,6 +90,18 @@ public class FileIOServiceImpl implements FileIOService {
 	}
 
 	@Override
+	public boolean writeStringToFileInResources(String path) {
+		Resource resource = new ClassPathResource(path);
+		try {
+			return writeStringToFile(resource.getFile().getPath());
+		} catch (IOException e) {
+			displayService.showln(logProcessorService.processLogs("There was an exception when trying to access the file \"{}\".", path));
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	@Override
 	public String readStringFromFile(String path) {
 		Path filePath = Paths.get(path);
 		String content = null;
@@ -70,4 +116,17 @@ public class FileIOServiceImpl implements FileIOService {
 
 		return content;
 	}
+
+	@Override
+	public String readStringFromFileInResources(String path) {
+		Resource resource = new ClassPathResource(path);
+		try {
+			return readStringFromFile(resource.getFile().getPath());
+		} catch (IOException e) {
+			displayService.showln(logProcessorService.processLogs("There was an exception when trying to access the file \"{}\".", path));
+			e.printStackTrace();
+			return "";
+		}
+	}
+
 }
