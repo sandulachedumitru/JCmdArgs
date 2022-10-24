@@ -1,7 +1,7 @@
 # GENERAL FORM
 # ============
 # {option, command, arguments_number, argument}
-# option=[[!]{--<optionLong>,-<optionShort>}[={}]]
+# option=[[!]{[-]-<optionLong>,-<optionShort>}[={}]]
 # command=[<command>]
 # argument=[<argument>]
 # arguments_number=[<number>]
