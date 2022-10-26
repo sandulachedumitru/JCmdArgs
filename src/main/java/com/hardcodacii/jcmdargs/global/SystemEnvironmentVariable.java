@@ -28,6 +28,12 @@ public class SystemEnvironmentVariable {
 	@Value("${cmdline.properties.global.option.prefix.name.short}")
 	public String OPTION_SHORT_PREFIX;
 
+	@Value("${cmdline.regex.definition.line.argument-definition-simple}")
+	public String REGEX_DEFINITION_LINE_ARGUMENT_SIMPLE;
+	@Value("${cmdline.regex.definition.line.argument-definition-with-values}")
+	public String REGEX_DEFINITION_LINE_ARGUMENT_WITH_VALUES;
+	@Value("${cmdline.regex.definition.line.argument-definition-mix}")
+	public String REGEX_DEFINITION_LINE_ARGUMENT_MIX;
 	@Value("${cmdline.regex.option.name.long}")
 	public String REGEX_OPTION_LONG;
 	@Value("${cmdline.regex.option.name.short}")

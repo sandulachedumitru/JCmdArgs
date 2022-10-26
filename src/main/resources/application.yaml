@@ -14,6 +14,11 @@ cmdline:
             long: "--"
             short: "-"
   regex:
+    definition:
+      line:
+        argument-definition-simple: (\S+)=(\S+)
+        argument-definition-with-values: (\S+)=(\S+)=(\S+)
+        argument-definition-mix: (\S+)=(\S+)=(\S+)|(\S+)=(\S+)
     option:
       name: # OR ^(--([a-zA-Z]+[^0-9\\W]))(=(\\w+))?$
         long: ^(--([a-zA-Z]+[^0-9\W]))(=((\w+)(\.([a-zA-Z0-9]+))?))?$
