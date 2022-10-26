@@ -11,21 +11,19 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class LogProcessorServiceImpl implements LogProcessorService {
+	private static final String CURLY_BRACES_REGEX = "\\{}";
+	private static final String CURLY_BRACES = "{}";
 	@Override
 	public String processLogs(String log, String... args) {
 		int index= 0;
-		String log2 = log;
-		while(log2.contains("{}")) {
+		String newLog = log;
+		while(newLog.contains(CURLY_BRACES)) {
 			if (args.length != 0 && index < args.length) {
-				log2 = log2.replaceFirst(CURLY_BRACES, args[index]);
+				newLog = newLog.replaceFirst(CURLY_BRACES_REGEX, args[index]);
 			} else break;
 			index++;
 		}
 
-		System.out.println("replace: " + log2);
-		System.out.println("log: " + log);
-		System.out.println();
-
-		return null;
+		return newLog;
 	}
 }

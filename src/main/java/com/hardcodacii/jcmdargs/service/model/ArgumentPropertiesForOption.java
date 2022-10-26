@@ -7,7 +7,6 @@ import lombok.Data;
  */
 
 @Data
-public class Argument {
-	private ArgumentType type;
-	private ArgumentProperties properties;
+public class ArgumentPropertiesForOption extends ArgumentProperties {
+	String optionDefinition;
 }

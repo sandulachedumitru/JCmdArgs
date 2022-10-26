@@ -1,16 +1,18 @@
 package com.hardcodacii.jcmdargs.service.imp;
 
 import com.hardcodacii.jcmdargs.global.SystemEnvironmentVariable;
-import com.hardcodacii.jcmdargs.service.FileIOService;
-import com.hardcodacii.jcmdargs.service.model.Argument;
 import com.hardcodacii.jcmdargs.service.CmdLineDefinitionParserService;
+import com.hardcodacii.jcmdargs.service.DisplayService;
+import com.hardcodacii.jcmdargs.service.FileIOService;
+import com.hardcodacii.jcmdargs.service.LogProcessorService;
+import com.hardcodacii.jcmdargs.service.model.Argument;
+import com.hardcodacii.jcmdargs.service.model.ArgumentProperties;
+import com.hardcodacii.jcmdargs.service.model.ArgumentPropertiesForOption;
+import com.hardcodacii.jcmdargs.service.model.ArgumentType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.Scanner;
-import java.util.Stack;
+import java.util.*;
 import java.util.regex.Pattern;
 
 /**
@@ -22,12 +24,13 @@ import java.util.regex.Pattern;
 public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionParserService {
 	private final FileIOService fileIOService;
 	private final SystemEnvironmentVariable environmentService;
+	private final DisplayService displayService;
+	private final LogProcessorService logProcessorService;
 
 	@Override
-	public Optional<Map<String, Argument>> parseArguments() {
+	public Optional<Map<ArgumentType, Argument>> parseArguments() {
 		var file = environmentService.PATH_TO_RESOURCES + environmentService.FILE_DEFINITION;
 		var fileExists = fileIOService.fileExistsInResources(file);
-		System.out.println("file: " + file + "\tfileExists: " + fileExists);
 
 		if (fileExists) {
 			String fileContent = fileIOService.readStringFromFileInResources(file);
@@ -43,58 +46,63 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 			scanner.close();
 		}
 
-		return Optional.ofNullable(null);
+		return Optional.empty();
 	}
 
-	private static String lineProcessor(String line) {
-		var sharp = "#";
-		if (line == null || line.equals("") || line.startsWith(sharp)) return "";
+	private Optional<Map<ArgumentType, Argument>> lineProcessor(String line) {
+		var EMPTY_LINE = environmentService.REGEX_GLOBAL_EMPTY_TEXT;
 
-		var regexArgumentDefinition = "(\\S+)=(\\S+)";
-		var regexArgumentDefinitionWithValues = "(\\S+)=(\\S+)=(\\S+)";
-		var regex = "(\\S+)=(\\S+)=(\\S+)|(\\S+)=(\\S+)";
+		var comment = environmentService.REGEX_SPECIAL_CHAR_SHARP;
+		if (line == null || line.equals("") || line.startsWith(comment)) return Optional.empty();
 
-		var patternArgumentDefinition = Pattern.compile(regexArgumentDefinition);
-		var patternArgumentDefinitionWithValues = Pattern.compile(regexArgumentDefinitionWithValues);
+		var regex = environmentService.REGEX_DEFINITION_LINE_ARGUMENT_MIX;
 		var pattern = Pattern.compile(regex);
-
-		var matcherArgumentDefinition = patternArgumentDefinition.matcher(line);
-		var matcherArgumentDefinitionWithValues = patternArgumentDefinitionWithValues.matcher(line);
 		var matcher = pattern.matcher(line);
+		int NUMBER_OF_GROUPS = 5 + 1;
 
-//		if (matcherArgumentDefinitionWithValues.find()) {
-//			for (var i = 0; i <= matcherArgumentDefinitionWithValues.groupCount(); i++) {
-//				System.out.println("\t\tARGUMENT DEFINITION: group[" + i + "]--> " + matcherArgumentDefinitionWithValues.group(i));
-//			}
-//		} else if (matcherArgumentDefinition.find()) {
-//			for (var i = 0; i <= matcherArgumentDefinition.groupCount(); i++) {
-//				System.out.println("\t\tARGUMENT DEFINITION: group[" + i + "]--> " + matcherArgumentDefinition.group(i));
-//			}
-//		}
-
-//		boolean flag = true;
-//		while (matcherArgumentDefinitionWithValues.find()) {
-//			for (var i = 0; i <= matcherArgumentDefinitionWithValues.groupCount(); i++) {
-//				System.out.println("\t\tARGUMENT DEFINITION: group[" + i + "]--> " + matcherArgumentDefinitionWithValues.group(i));
-//			}
-//			flag = false;
-//		}
-//		while (flag && matcherArgumentDefinition.find()) {
-//			for (var i = 0; i <= matcherArgumentDefinition.groupCount(); i++) {
-//				System.out.println("\t\tARGUMENT DEFINITION: group[" + i + "]--> " + matcherArgumentDefinition.group(i));
-//			}
-//		}
-
+		Map<ArgumentType, Argument> parsedArguments = new HashMap<>();
 		while (matcher.find()) {
 			for (var i = 0; i <= matcher.groupCount(); i++) {
 				System.out.println("\t\tARGUMENT DEFINITION: group[" + i + "]--> " + matcher.group(i));
+				if (matcher.group(i) != null) {}
+			}
+			if (matcher.groupCount() != NUMBER_OF_GROUPS) {
+				displayService.showlnErr(logProcessorService.processLogs("The number of matching groups is not good. Expected {} but is actually {}", String.valueOf(NUMBER_OF_GROUPS), String.valueOf(matcher.groupCount())));
+				return Optional.empty();
+			}
+
+			Argument argument = new Argument();
+			if (matcher.group(NUMBER_OF_GROUPS -2) == null && matcher.group(NUMBER_OF_GROUPS -1) == null) {
+				int groupIndex = 0;
+				ArgumentPropertiesForOption properties = new ArgumentPropertiesForOption();
+				properties.setDefinition(matcher.group(groupIndex++));
+				properties.setArgumentType(matcher.group(groupIndex++));
+				properties.setOptionDefinition(matcher.group(groupIndex++));
+				properties.setOptionAllowedValue(matcher.group(groupIndex++));
+
+				var  type = ArgumentType.getArgumentTypeByCode(properties.getArgumentType());
+				argument.setType(type);
+				argument.setProperties(properties);
+
+				parsedArguments.put(type, argument);
+			} else {
+				int groupIndex = NUMBER_OF_GROUPS;
+				ArgumentProperties properties = new ArgumentProperties();
+				properties.setDefinition(matcher.group(0));
+				properties.setOptionAllowedValue(matcher.group(--groupIndex));
+				properties.setArgumentType(matcher.group(--groupIndex));
+
+				var  type = ArgumentType.getArgumentTypeByCode(properties.getArgumentType());
+				argument.setType(type);
+				argument.setProperties(properties);
+
+				parsedArguments.put(type, argument);
 			}
 		}
-
-		return "";
+		return Optional.of(parsedArguments);
 	}
 
-	private static void definitionGeneralFormProcessor(String definition) {
+	private void definitionGeneralFormProcessor(String definition) {
 		var squareBracketLeft = "[";
 		var squareBracketRight = "]";
 		var curlyBracesLeft = "{";

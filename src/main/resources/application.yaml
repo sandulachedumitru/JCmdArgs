@@ -1,5 +1,4 @@
 cmdline:
-  app-name: CmdLineArgs
   file:
     path-to-resources: /cmd-line/
     path-to-help-files: /help-files/ # src/main/resources/cmd-line/help-files
@@ -8,12 +7,21 @@ cmdline:
     default-output-file: default-output-file.txt
   properties:
     global:
-      option:
-        prefix:
-          name:
-            long: "--"
-            short: "-"
+      app-name: CmdLineArgs
   regex:
+    global:
+      empty-text: ""
+    special-character:
+      square-bracket-left: "["
+      square-bracket-right: "]"
+      curly-braces-left: "{"
+      curly-braces-right: "}"
+      equal: "="
+      comma: ","
+      option-prefix-short: "-"
+      option-prefix-long: "--"
+      sharp: "#"
+      single-option-allowed: "!"
     definition:
       line:
         argument-definition-simple: (\S+)=(\S+)
@@ -36,17 +44,3 @@ cmdline:
       delimiter:
         minus: "------------------------------------------------------------------"
         equal: "=================================================================="
-  service:
-    display-service:
-      message-with-param:
-        file-exist:
-          file-exist: 'The file/folder "{}" exists.'
-          file-not-exist: 'The file/folder "{}" does not exist'
-          is-folder: '"{}" is a directory. Need a file.'
-          is-file: '"{}" is a file.'
-        write-to-file:
-          successful: Successful write to file.
-          failed: Failed to write to file.
-        read-from-file:
-          successful: Successful read from file.
-          failed: Failed to read from file.

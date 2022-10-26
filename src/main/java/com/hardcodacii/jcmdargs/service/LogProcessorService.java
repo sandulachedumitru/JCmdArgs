@@ -5,6 +5,5 @@ package com.hardcodacii.jcmdargs.service;
  */
 
 public interface LogProcessorService {
-	String CURLY_BRACES = "\\{\\}";
-	String processLogs(String log, String... arg);
+		String processLogs(String log, String... arg);
 }

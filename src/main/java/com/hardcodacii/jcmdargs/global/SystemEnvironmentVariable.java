@@ -9,8 +9,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class SystemEnvironmentVariable {
-	@Value("${cmdline.app-name}")
-	public String APP_NAME;
+	// FILE
 
 	@Value("${cmdline.file.path-to-resources}")
 	public String PATH_TO_RESOURCES;
@@ -23,15 +22,42 @@ public class SystemEnvironmentVariable {
 	@Value("${cmdline.file.default-output-file}")
 	public String FILE_DEFAULT_OUTPUT;
 
-	@Value("${cmdline.properties.global.option.prefix.name.long}")
-	public String OPTION_LONG_PREFIX;
-	@Value("${cmdline.properties.global.option.prefix.name.short}")
-	public String OPTION_SHORT_PREFIX;
+	// PROPERTIES
+
+	@Value("${cmdline.properties.global.app-name}")
+	public String APP_NAME;
+
+	// REGEX
+	@Value("${cmdline.regex.global.empty-text}")
+	public String REGEX_GLOBAL_EMPTY_TEXT;
+
+	@Value("${cmdline.regex.special-character.square-bracket-left}")
+	public String REGEX_SPECIAL_CHAR_SQUARE_BRACKET_LEFT;
+	@Value("${cmdline.regex.special-character.square-bracket-right}")
+	public String REGEX_SPECIAL_CHAR_SQUARE_BRACKET_RIGHT;
+	@Value("${cmdline.regex.special-character.curly-braces-left}")
+	public String REGEX_SPECIAL_CHAR_CURLY_BRACES_LEFT;
+	@Value("${cmdline.regex.special-character.curly-braces-right}")
+	public String REGEX_SPECIAL_CHAR_CURLY_BRACES_RIGHT;
+	@Value("${cmdline.regex.special-character.equal}")
+	public String REGEX_SPECIAL_CHAR_EQUAL;
+	@Value("${cmdline.regex.special-character.comma}")
+	public String REGEX_SPECIAL_CHAR_COMMA;
+	@Value("${cmdline.regex.special-character.option-prefix-short}")
+	public String REGEX_SPECIAL_CHAR_OPTION_PREFIX_SHORT;
+	@Value("${cmdline.regex.special-character.option-prefix-long}")
+	public String REGEX_SPECIAL_CHAR_OPTION_PREFIX_LONG;
+	@Value("${cmdline.regex.special-character.sharp}")
+	public String REGEX_SPECIAL_CHAR_SHARP;
+	@Value("${cmdline.regex.special-character.single-option-allowed}")
+	public String REGEX_SPECIAL_CHAR_SINGLE_OPTION_ALLOWED;
+
 
 	@Value("${cmdline.regex.definition.line.argument-definition-simple}")
 	public String REGEX_DEFINITION_LINE_ARGUMENT_SIMPLE;
 	@Value("${cmdline.regex.definition.line.argument-definition-with-values}")
 	public String REGEX_DEFINITION_LINE_ARGUMENT_WITH_VALUES;
+
 	@Value("${cmdline.regex.definition.line.argument-definition-mix}")
 	public String REGEX_DEFINITION_LINE_ARGUMENT_MIX;
 	@Value("${cmdline.regex.option.name.long}")
@@ -43,6 +69,8 @@ public class SystemEnvironmentVariable {
 	@Value("${cmdline.regex.parameter.anything}")
 	public String REGEX_PARAMETER_ANYTHING;
 
+	// LOGs
+
 	@Value("${cmdline.log.paragraph.crlf}")
 	public String LOG_PARAGRAPH_CRLF;
 	@Value("${cmdline.log.paragraph.tab}")
@@ -53,21 +81,4 @@ public class SystemEnvironmentVariable {
 	public String LOG_SECTION_DELIMITER_MINUS;
 	@Value("${cmdline.log.section.delimiter.equal}")
 	public String LOG_SECTION_DELIMITER_EQUAL;
-
-	@Value("${cmdline.service.display-service.message-with-param.file-exist.file-exist}")
-	public String SERVICE_DISPLAY_MESSAGE_FILEEXIST_FILEEXIST;
-	@Value("${cmdline.service.display-service.message-with-param.file-exist.file-not-exist}")
-	public String SERVICE_DISPLAY_MESSAGE_FILEEXIST_FILENOTEXIST;
-	@Value("${cmdline.service.display-service.message-with-param.file-exist.is-folder}")
-	public String SERVICE_DISPLAY_MESSAGE_FILEEXIST_ISFOLDER;
-	@Value("${cmdline.service.display-service.message-with-param.file-exist.is-file}")
-	public String SERVICE_DISPLAY_MESSAGE_FILEEXIST_ISFILE;
-	@Value("${cmdline.service.display-service.message-with-param.write-to-file.successful}")
-	public String SERVICE_DISPLAY_MESSAGE_WRITETOFILE_SUCCESSFUL;
-	@Value("${cmdline.service.display-service.message-with-param.write-to-file.failed}")
-	public String SERVICE_DISPLAY_MESSAGE_WRITETOFILE_FAILED;
-	@Value("${cmdline.service.display-service.message-with-param.read-from-file.successful}")
-	public String SERVICE_DISPLAY_MESSAGE_READFROMFILE_SUCCESSFUL;
-	@Value("${cmdline.service.display-service.message-with-param.read-from-file.failed}")
-	public String SERVICE_DISPLAY_MESSAGE_READFROMFILE_FAILED;
 }

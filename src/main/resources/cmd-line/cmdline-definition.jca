@@ -1,13 +1,17 @@
 # GENERAL FORM
 # ============
-# {option, command, arguments_number, argument}
+# allowed_arguments_order={option, command, arguments_number, argument}
 # option=[[!]{[-]-<optionLong>,-<optionShort>}[={}]]
 # command=[<command>]
 # argument=[<argument>]
 # arguments_number=[<number>]
 
-{option, arguments_number, argument}
-option=!{--help,-h}
+# NOTE
+# =======
+# The spaces inside of argument are not allowed
+
+allowed_arguments_order={option,arguments_number,argument}
+option=!{--help,-h} ORDER={option,arguments_number,argument}={one,two,three}
 option={--debug,-d}={enable,disable}
 option={--print-to,-pt}={Logs.txt,#}
 arguments_number=1
