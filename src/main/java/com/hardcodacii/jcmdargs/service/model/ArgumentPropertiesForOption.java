@@ -8,5 +8,5 @@ import lombok.Data;
 
 @Data
 public class ArgumentPropertiesForOption extends ArgumentProperties {
-	String optionDefinition;
+	String optionDefinition; // ex: {--help,-h}
 }

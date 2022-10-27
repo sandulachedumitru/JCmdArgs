@@ -66,7 +66,7 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 				System.out.println("\t\tARGUMENT DEFINITION: group[" + i + "]--> " + matcher.group(i));
 				if (matcher.group(i) != null) {}
 			}
-			if (matcher.groupCount() != NUMBER_OF_GROUPS) {
+			if (matcher.groupCount() != NUMBER_OF_GROUPS -1) {
 				displayService.showlnErr(logProcessorService.processLogs("The number of matching groups is not good. Expected {} but is actually {}", String.valueOf(NUMBER_OF_GROUPS), String.valueOf(matcher.groupCount())));
 				return Optional.empty();
 			}
@@ -96,10 +96,15 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 				argument.setType(type);
 				argument.setProperties(properties);
 
-				parsedArguments.put(type, argument);
+				parsedArguments.put(type, argument); // TODO better use recordParsedArgument() method
 			}
 		}
+		System.out.println("parsedArguments --> " + parsedArguments);
 		return Optional.of(parsedArguments);
+	}
+
+	private static void recordParsedArgument(ArgumentType type, Argument argument) {
+
 	}
 
 	private void definitionGeneralFormProcessor(String definition) {
