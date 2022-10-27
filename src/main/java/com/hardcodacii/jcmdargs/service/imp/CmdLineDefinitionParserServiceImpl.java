@@ -27,6 +27,8 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 	private final DisplayService displayService;
 	private final LogProcessorService logProcessorService;
 
+	private final Map<ArgumentType, List<Argument>> parsedArgumentsMap = new HashMap<>();
+
 	@Override
 	public Optional<Map<ArgumentType, Argument>> parseArguments() {
 		var file = environmentService.PATH_TO_RESOURCES + environmentService.FILE_DEFINITION;
@@ -46,10 +48,18 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 			scanner.close();
 		}
 
+		for (var entry : parsedArgumentsMap.entrySet()) {
+			System.out.println("\tkey: " + entry.getKey() + "\tvalues: " + entry.getValue());
+			for (var arg : entry.getValue()) {
+				System.out.println("\t\tvalue: " + arg);
+
+			}
+		}
+
 		return Optional.empty();
 	}
 
-	private Optional<Map<ArgumentType, Argument>> lineProcessor(String line) {
+	private Optional<Map<ArgumentType, List<Argument>>> lineProcessor(String line) {
 		var EMPTY_LINE = environmentService.REGEX_GLOBAL_EMPTY_TEXT;
 
 		var comment = environmentService.REGEX_SPECIAL_CHAR_SHARP;
@@ -60,11 +70,10 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 		var matcher = pattern.matcher(line);
 		int NUMBER_OF_GROUPS = 5 + 1;
 
-		Map<ArgumentType, Argument> parsedArguments = new HashMap<>();
+		List<Argument> argumentList = new ArrayList<>();
 		while (matcher.find()) {
 			for (var i = 0; i <= matcher.groupCount(); i++) {
 				System.out.println("\t\tARGUMENT DEFINITION: group[" + i + "]--> " + matcher.group(i));
-				if (matcher.group(i) != null) {}
 			}
 			if (matcher.groupCount() != NUMBER_OF_GROUPS -1) {
 				displayService.showlnErr(logProcessorService.processLogs("The number of matching groups is not good. Expected {} but is actually {}", String.valueOf(NUMBER_OF_GROUPS), String.valueOf(matcher.groupCount())));
@@ -81,10 +90,13 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 				properties.setOptionAllowedValue(matcher.group(groupIndex++));
 
 				var  type = ArgumentType.getArgumentTypeByCode(properties.getArgumentType());
-				argument.setType(type);
-				argument.setProperties(properties);
+				if (type != null) {
+					argument.setType(type);
+					argument.setProperties(properties);
+				} else {
+					displayService.showlnErr(logProcessorService.processLogs("The argument type '{}' is unknown and will be ignored.", properties.getArgumentType()));
+				}
 
-				parsedArguments.put(type, argument);
 			} else {
 				int groupIndex = NUMBER_OF_GROUPS;
 				ArgumentProperties properties = new ArgumentProperties();
@@ -93,14 +105,30 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 				properties.setArgumentType(matcher.group(--groupIndex));
 
 				var  type = ArgumentType.getArgumentTypeByCode(properties.getArgumentType());
-				argument.setType(type);
-				argument.setProperties(properties);
-
-				parsedArguments.put(type, argument); // TODO better use recordParsedArgument() method
+				if (type != null) {
+					argument.setType(type);
+					argument.setProperties(properties);
+				} else {
+					displayService.showlnErr(logProcessorService.processLogs("The argument type '{}' is unknown and will be ignored.", properties.getArgumentType()));
+				}
+			}
+			argumentList.add(argument);
+		}
+		for (var arg : argumentList) {
+			if (parsedArgumentsMap.containsKey(arg.getType())) {
+				var argList = parsedArgumentsMap.get(arg.getType());
+				//if (! argList.contains(arg))
+					argList.add(arg);
+			} else {
+				var key = arg.getType();
+				List<Argument> values = new ArrayList<>();
+				values.add(arg);
+				parsedArgumentsMap.put(key, values);
 			}
 		}
-		System.out.println("parsedArguments --> " + parsedArguments);
-		return Optional.of(parsedArguments);
+
+
+		return Optional.of(parsedArgumentsMap);
 	}
 
 	private static void recordParsedArgument(ArgumentType type, Argument argument) {
