@@ -5,10 +5,7 @@ import com.hardcodacii.jcmdargs.service.CmdLineDefinitionParserService;
 import com.hardcodacii.jcmdargs.service.DisplayService;
 import com.hardcodacii.jcmdargs.service.FileIOService;
 import com.hardcodacii.jcmdargs.service.LogProcessorService;
-import com.hardcodacii.jcmdargs.service.model.Argument;
-import com.hardcodacii.jcmdargs.service.model.ArgumentProperties;
-import com.hardcodacii.jcmdargs.service.model.ArgumentPropertiesForOption;
-import com.hardcodacii.jcmdargs.service.model.ArgumentType;
+import com.hardcodacii.jcmdargs.service.model.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -80,37 +77,31 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 				return Optional.empty();
 			}
 
-			Argument argument = new Argument();
+			ArgumentProperties properties2;
 			if (matcher.group(NUMBER_OF_GROUPS -2) == null && matcher.group(NUMBER_OF_GROUPS -1) == null) {
 				int groupIndex = 0;
-				ArgumentPropertiesForOption properties = new ArgumentPropertiesForOption();
+				var properties = new ArgumentPropertiesForOption();
 				properties.setDefinition(matcher.group(groupIndex++));
 				properties.setArgumentType(matcher.group(groupIndex++));
 				properties.setOptionDefinition(matcher.group(groupIndex++));
 				properties.setOptionAllowedValue(matcher.group(groupIndex++));
-
-				var  type = ArgumentType.getArgumentTypeByCode(properties.getArgumentType());
-				if (type != null) {
-					argument.setType(type);
-					argument.setProperties(properties);
-				} else {
-					displayService.showlnErr(logProcessorService.processLogs("The argument type '{}' is unknown and will be ignored.", properties.getArgumentType()));
-				}
-
+				properties2 = properties;
 			} else {
 				int groupIndex = NUMBER_OF_GROUPS;
-				ArgumentProperties properties = new ArgumentProperties();
+				var properties = new ArgumentPropertiesStandard();
 				properties.setDefinition(matcher.group(0));
 				properties.setOptionAllowedValue(matcher.group(--groupIndex));
 				properties.setArgumentType(matcher.group(--groupIndex));
+				properties2 = properties;
+			}
 
-				var  type = ArgumentType.getArgumentTypeByCode(properties.getArgumentType());
-				if (type != null) {
-					argument.setType(type);
-					argument.setProperties(properties);
-				} else {
-					displayService.showlnErr(logProcessorService.processLogs("The argument type '{}' is unknown and will be ignored.", properties.getArgumentType()));
-				}
+			Argument argument = new Argument();
+			var  type = ArgumentType.getArgumentTypeByCode(properties2.getArgumentType());
+			if (type != null) {
+				argument.setType(type);
+				argument.setProperties(properties2);
+			} else {
+				displayService.showlnErr(logProcessorService.processLogs("The argument type '{}' is unknown and will be ignored.", properties2.getArgumentType()));
 			}
 			argumentList.add(argument);
 		}
