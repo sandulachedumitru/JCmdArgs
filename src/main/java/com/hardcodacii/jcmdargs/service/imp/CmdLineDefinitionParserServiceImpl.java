@@ -46,9 +46,9 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 		}
 
 		for (var entry : parsedArgumentsMap.entrySet()) {
-			System.out.println("\tkey: " + entry.getKey() + "\tvalues: " + entry.getValue());
+			System.out.println("key: " + entry.getKey() + "\tvalues: " + entry.getValue());
 			for (var arg : entry.getValue()) {
-				System.out.println("\t\tvalue: " + arg);
+				System.out.println("\tvalue: " + arg);
 
 			}
 		}
@@ -77,34 +77,36 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 				return Optional.empty();
 			}
 
-			ArgumentProperties properties2;
+			ArgumentProperties argumentProperties;
 			if (matcher.group(NUMBER_OF_GROUPS -2) == null && matcher.group(NUMBER_OF_GROUPS -1) == null) {
 				int groupIndex = 0;
 				var properties = new ArgumentPropertiesForOption();
 				properties.setDefinition(matcher.group(groupIndex++));
 				properties.setArgumentType(matcher.group(groupIndex++));
 				properties.setOptionDefinition(matcher.group(groupIndex++));
-				properties.setOptionAllowedValue(matcher.group(groupIndex++));
-				properties2 = properties;
+				properties.setOptionAllowedValues(matcher.group(groupIndex++));
+				argumentProperties = properties;
 			} else {
 				int groupIndex = NUMBER_OF_GROUPS;
-				var properties = new ArgumentPropertiesStandard();
+				var properties = new ArgumentProperties();
 				properties.setDefinition(matcher.group(0));
-				properties.setOptionAllowedValue(matcher.group(--groupIndex));
+				properties.setOptionAllowedValues(matcher.group(--groupIndex));
 				properties.setArgumentType(matcher.group(--groupIndex));
-				properties2 = properties;
+				argumentProperties = properties;
 			}
 
 			Argument argument = new Argument();
-			var  type = ArgumentType.getArgumentTypeByCode(properties2.getArgumentType());
+			var  type = ArgumentType.getArgumentTypeByCode(argumentProperties.getArgumentType());
 			if (type != null) {
 				argument.setType(type);
-				argument.setProperties(properties2);
+				argument.setProperties(argumentProperties);
+				argumentList.add(argument);
 			} else {
-				displayService.showlnErr(logProcessorService.processLogs("The argument type '{}' is unknown and will be ignored.", properties2.getArgumentType()));
+				displayService.showlnErr(logProcessorService.processLogs("The argument type '{}' is unknown and will be ignored.", argumentProperties.getArgumentType()));
 			}
-			argumentList.add(argument);
 		}
+
+		// map argument List to Map
 		for (var arg : argumentList) {
 			if (parsedArgumentsMap.containsKey(arg.getType())) {
 				var argList = parsedArgumentsMap.get(arg.getType());

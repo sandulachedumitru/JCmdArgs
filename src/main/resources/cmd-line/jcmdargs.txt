@@ -1,0 +1,49 @@
+key: ALLOWED_ARGUMENTS_ORDER
+	value: Argument(
+		type=ALLOWED_ARGUMENTS_ORDER, 
+		properties=ArgumentProperties(
+			definition=allowed_arguments_order={option,arguments_number,argument}, 
+			argumentType=allowed_arguments_order, 
+			optionAllowedValues={option,arguments_number,argument}))
+			
+key: ARGUMENTS_NUMBER
+	value: Argument(
+		type=ARGUMENTS_NUMBER, 
+		properties=ArgumentProperties(
+			definition=arguments_number=1, 
+			argumentType=arguments_number, 
+			optionAllowedValues=1))
+			
+key: OPTION
+	value: Argument(
+		type=OPTION, 
+		properties=ArgumentProperties(
+			definition=option=!{--help,-h}, 
+			argumentType=option, 
+			optionAllowedValues=!{--help,-h}))
+			
+	value: Argument(
+		type=OPTION, 
+		properties=ArgumentPropertiesForOption(
+			super=ArgumentProperties(
+				definition=option={--debug,-d}={enable,disable}, 
+				argumentType=option, 
+				optionAllowedValues={enable,disable}), 
+			optionDefinition={--debug,-d}))
+				
+	value: Argument(
+		type=OPTION, 
+		properties=ArgumentPropertiesForOption(
+			super=ArgumentProperties(
+				definition=option={--print-to,-pt}={Logs.txt,#}, 
+				argumentType=option, 
+				optionAllowedValues={Logs.txt,#}), 
+			optionDefinition={--print-to,-pt}))
+				
+key: ARGUMENT
+	value: Argument(
+		type=ARGUMENT, 
+		properties=ArgumentProperties(
+			definition=argument=sudokufile.txt, 
+			argumentType=argument, 
+			optionAllowedValues=sudokufile.txt))
