@@ -16,4 +16,6 @@ public interface LogChacheService {
 	StringBuilder getLogCache();
 
 	String getErrorPrefix();
+
+	String getInfoPrefix();
 }

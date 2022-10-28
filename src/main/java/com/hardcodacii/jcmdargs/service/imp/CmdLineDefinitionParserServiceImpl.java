@@ -33,14 +33,11 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 
 		if (fileExists) {
 			String fileContent = fileIOService.readStringFromFileInResources(file);
-			System.out.println("fileContent: " + fileContent);
 
-			Scanner scanner = new Scanner(fileContent);
+			var scanner = new Scanner(fileContent);
 			while (scanner.hasNextLine()) {
-				String line = scanner.nextLine();
-				String lineTrim = line.trim();
-				System.out.println("line: " + lineTrim);
-				lineProcessor(lineTrim);
+				var line = scanner.nextLine();
+				lineProcessor(line.trim());
 			}
 			scanner.close();
 		}
@@ -53,28 +50,32 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 			}
 		}
 
+		// ??
+		if (parsedArgumentsMap.size() == 0) return Optional.empty();
+
+		parseDefinitionFromArgument();
+
 		return Optional.empty();
 	}
 
-	private Optional<Map<ArgumentType, List<Argument>>> lineProcessor(String line) {
-		var EMPTY_LINE = environmentService.REGEX_GLOBAL_EMPTY_TEXT;
-
-		var comment = environmentService.REGEX_SPECIAL_CHAR_SHARP;
-		if (line == null || line.equals("") || line.startsWith(comment)) return Optional.empty();
+	private void lineProcessor(String line) {
+		var comment = environmentService.TOKEN_SPECIAL_CHAR_SHARP;
+		if (line == null || line.equals("") || line.startsWith(comment)) return;
 
 		var regex = environmentService.REGEX_DEFINITION_LINE_ARGUMENT_MIX;
 		var pattern = Pattern.compile(regex);
 		var matcher = pattern.matcher(line);
 		int NUMBER_OF_GROUPS = 5 + 1;
 
+		displayService.showln(logProcessorService.processLogs("line: {}", line));
 		List<Argument> argumentList = new ArrayList<>();
 		while (matcher.find()) {
 			for (var i = 0; i <= matcher.groupCount(); i++) {
-				System.out.println("\t\tARGUMENT DEFINITION: group[" + i + "]--> " + matcher.group(i));
+				displayService.showln(logProcessorService.processLogs("\tARGUMENT DEFINITION: group[{}] --> {}", String.valueOf(i), matcher.group(i)));
 			}
 			if (matcher.groupCount() != NUMBER_OF_GROUPS -1) {
 				displayService.showlnErr(logProcessorService.processLogs("The number of matching groups is not good. Expected {} but is actually {}", String.valueOf(NUMBER_OF_GROUPS), String.valueOf(matcher.groupCount())));
-				return Optional.empty();
+				return;
 			}
 
 			ArgumentProperties argumentProperties;
@@ -119,34 +120,41 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 				parsedArgumentsMap.put(key, values);
 			}
 		}
-
-
-		return Optional.of(parsedArgumentsMap);
 	}
 
-	private static void recordParsedArgument(ArgumentType type, Argument argument) {
+	private void parseDefinitionFromArgument() {
+		var SQUARE_BRACKET_LEFT = environmentService.TOKEN_SPECIAL_CHAR_SQUARE_BRACKET_LEFT;
+		var SQUARE_BRACKET_RIGHT = environmentService.TOKEN_SPECIAL_CHAR_SQUARE_BRACKET_RIGHT;
+		var CURLY_BRACES_LEFT = environmentService.TOKEN_SPECIAL_CHAR_CURLY_BRACES_LEFT;
+		var CURLY_BRACES_RIGHT = environmentService.TOKEN_SPECIAL_CHAR_CURLY_BRACES_RIGHT;
+		var EQUAL = environmentService.TOKEN_SPECIAL_CHAR_EQUAL;
+		var COMMA = environmentService.TOKEN_SPECIAL_CHAR_COMMA;
+		var OPTION_PREFIX_SHORT = environmentService.TOKEN_SPECIAL_CHAR_OPTION_PREFIX_SHORT;
+		var OPTION_PREFIX_LONG = environmentService.TOKEN_SPECIAL_CHAR_OPTION_PREFIX_LONG;
+		var SHARP = environmentService.TOKEN_SPECIAL_CHAR_SHARP;
+		var EMPTY_LINE = environmentService.TOKEN_GLOBAL_EMPTY_TEXT;
 
-	}
+		if (parsedArgumentsMap.size() == 0) return;
 
-	private void definitionGeneralFormProcessor(String definition) {
-		var squareBracketLeft = "[";
-		var squareBracketRight = "]";
-		var curlyBracesLeft = "{";
-		var curlyBracesRight = "}";
-		var equal = "=";
-		var comma = ",";
-		var optionPrefixShort = "-";
-		var optionPrefixLong = "--";
-		var sharp = "#";
-		var regex = "(\\S+)=(\\S+)";
 
-		if (definition == null || definition.startsWith(sharp)) return;
+		for (var entry : parsedArgumentsMap.entrySet()) {
+			displayService.showln(logProcessorService.processLogs("key: [{}]", entry.getKey().name()));
+			for (var arg : entry.getValue()) {
+				displayService.showln(logProcessorService.processLogs("\tvalues: [{}]", arg.toString()));
 
-		Stack<Integer> leftParenStack = new Stack<>();
-		for (var i = 0; i < definition.length();  i++) {
+				Argument argument = arg;
+				ArgumentProperties argumentProperties = arg.getProperties();
+				Stack<Integer> leftParenStack = new Stack<>();
+				var allowedValues = argumentProperties.getOptionAllowedValues();
+				for (var i = 0; i < allowedValues.length();  i++) {
 
-			Character token = definition.charAt(i);
-			String subExpression = "";
+					Character token = allowedValues.charAt(i);
+					String subExpression = "";
+					System.out.print(token);
+				}
+				System.out.println();
+			}
 		}
+
 	}
 }

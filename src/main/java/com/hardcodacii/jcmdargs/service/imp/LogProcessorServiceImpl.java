@@ -19,7 +19,8 @@ public class LogProcessorServiceImpl implements LogProcessorService {
 		String newLog = log;
 		while(newLog.contains(CURLY_BRACES)) {
 			if (args.length != 0 && index < args.length) {
-				newLog = newLog.replaceFirst(CURLY_BRACES_REGEX, args[index]);
+				var arg = args[index] != null ? args[index] : "null";
+				newLog = newLog.replaceFirst(CURLY_BRACES_REGEX, arg);
 			} else break;
 			index++;
 		}

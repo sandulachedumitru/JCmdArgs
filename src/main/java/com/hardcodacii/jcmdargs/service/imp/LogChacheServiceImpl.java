@@ -19,6 +19,9 @@ public class LogChacheServiceImpl implements LogChacheService {
 	private String ERROR() {
 		return environment.LOG_ERROR_PREFIX;
 	}
+	private String INFO() {
+		return environment.LOG_INFO_PREFIX;
+	}
 
 	private StringBuilder logCache = new StringBuilder();
 
@@ -46,5 +49,9 @@ public class LogChacheServiceImpl implements LogChacheService {
 
 	public String getErrorPrefix() {
 		return ERROR();
+	}
+
+	public String getInfoPrefix() {
+		return INFO();
 	}
 }

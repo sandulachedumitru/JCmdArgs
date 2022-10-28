@@ -19,13 +19,15 @@ public class DisplayServiceImpl implements DisplayService {
 
 	@Override
 	public void showln(Object obj) {
-		System.out.println(obj);
+		String prefix = logChacheService.getInfoPrefix();
+		System.out.println(prefix + obj);
 		logChacheService.showln(obj);
 	}
 
 	@Override
 	public void show(Object obj) {
-		System.out.print(obj);
+		String prefix = logChacheService.getInfoPrefix();
+		System.out.print(prefix + obj);
 		logChacheService.show(obj);
 	}
 
