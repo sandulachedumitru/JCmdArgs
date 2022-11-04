@@ -29,6 +29,8 @@ cmdline:
       prefix: "[ERROR]\t"
     info:
       prefix: "[INFO]\t"
+    warning:
+      prefix: "[WARNING]\t"
     section:
       delimiter:
         minus: "------------------------------------------------------------------"

@@ -59,7 +59,7 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 	}
 
 	private void lineProcessor(String line) {
-		var comment = environmentService.TOKEN_SPECIAL_CHAR_SHARP;
+		var comment = environmentService.TOKEN_SPECIAL_CHAR_SHARP.toString();
 		if (line == null || line.equals("") || line.startsWith(comment)) return;
 
 		var regex = environmentService.REGEX_DEFINITION_LINE_ARGUMENT_MIX;
@@ -123,6 +123,42 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 	}
 
 	private void parseDefinitionFromArgument() {
+		if (parsedArgumentsMap.size() == 0) return;
+
+		for (var entry : parsedArgumentsMap.entrySet()) {
+			displayService.showln(logProcessorService.processLogs("key: [{}]", entry.getKey().name()));
+			for (var arg : entry.getValue()) {
+				displayService.showln(logProcessorService.processLogs("\tvalues: [{}]", arg.toString()));
+				if (arg.getType() == ArgumentType.OPTION) {
+					if (arg.getProperties() instanceof ArgumentPropertiesForOption) {
+						ArgumentPropertiesForOption argumentProperties = (ArgumentPropertiesForOption) arg.getProperties();
+						tokenize(argumentProperties.getOptionDefinition());
+//						tokenize((argumentProperties.getOptionAllowedValues()));
+					} else if (arg.getProperties() instanceof ArgumentProperties) {
+
+					} else {
+
+					}
+
+				} else if (arg.getType() == ArgumentType.COMMAND) {
+
+				} else if (arg.getType() == ArgumentType.ARGUMENT) {
+
+				} else if (arg.getType() == ArgumentType.ARGUMENTS_NUMBER) {
+
+				} else if (arg.getType() == ArgumentType.ALLOWED_ARGUMENTS_ORDER) {
+
+				} else {
+
+				}
+
+
+			}
+		}
+
+	}
+
+	private List<String> tokenize(String properties) {
 		var SQUARE_BRACKET_LEFT = environmentService.TOKEN_SPECIAL_CHAR_SQUARE_BRACKET_LEFT;
 		var SQUARE_BRACKET_RIGHT = environmentService.TOKEN_SPECIAL_CHAR_SQUARE_BRACKET_RIGHT;
 		var CURLY_BRACES_LEFT = environmentService.TOKEN_SPECIAL_CHAR_CURLY_BRACES_LEFT;
@@ -132,29 +168,78 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 		var OPTION_PREFIX_SHORT = environmentService.TOKEN_SPECIAL_CHAR_OPTION_PREFIX_SHORT;
 		var OPTION_PREFIX_LONG = environmentService.TOKEN_SPECIAL_CHAR_OPTION_PREFIX_LONG;
 		var SHARP = environmentService.TOKEN_SPECIAL_CHAR_SHARP;
-		var EMPTY_LINE = environmentService.TOKEN_GLOBAL_EMPTY_TEXT;
+		var EMPTY_TEXT = environmentService.TOKEN_GLOBAL_EMPTY_TEXT;
+		var SINGLE_OPTION_ALLOWED = environmentService.TOKEN_SPECIAL_CHAR_SINGLE_OPTION_ALLOWED;
 
-		if (parsedArgumentsMap.size() == 0) return;
+		if (properties == null || properties.trim().equals(EMPTY_TEXT)) return null;
 
+		var singleOptionAllowed = properties.startsWith(String.valueOf(SINGLE_OPTION_ALLOWED));
+		var start = singleOptionAllowed ? 1 : 0;
 
-		for (var entry : parsedArgumentsMap.entrySet()) {
-			displayService.showln(logProcessorService.processLogs("key: [{}]", entry.getKey().name()));
-			for (var arg : entry.getValue()) {
-				displayService.showln(logProcessorService.processLogs("\tvalues: [{}]", arg.toString()));
+		boolean curlyBracesError = false;
+		Integer lastIndexLeft = null;
+		Integer lastIndexRight = null;
+		Integer lastIndexRegular = null;
+		int numberOfCurlyBracesLeft = 0;
+		int numberOfCurlyBracesRight = 0;
 
-				Argument argument = arg;
-				ArgumentProperties argumentProperties = arg.getProperties();
-				Stack<Integer> leftParenStack = new Stack<>();
-				var allowedValues = argumentProperties.getOptionAllowedValues();
-				for (var i = 0; i < allowedValues.length();  i++) {
+		StringBuilder sb = new StringBuilder();
+		List<String> list = new ArrayList<>();
 
-					Character token = allowedValues.charAt(i);
-					String subExpression = "";
-					System.out.print(token);
+		for (var index = start; index < properties.length(); index++) {
+			char token = properties.charAt(index);
+			if (token == CURLY_BRACES_LEFT) {
+				if (++numberOfCurlyBracesLeft <= 1 && sb.length() == 0) { // 1 left and 1 right curly brace: {...}
+					// ok
+					lastIndexLeft = index;
+				} else {
+					curlyBracesError = true;
+					break;
 				}
-				System.out.println();
+			} else if (token == CURLY_BRACES_RIGHT) {
+				lastIndexRight = index;
+				if (++numberOfCurlyBracesRight <= 1 && lastIndexLeft != null && lastIndexLeft < lastIndexRight && sb.length() != 0) {
+					// ok
+					list.add(sb.toString());
+					sb = new StringBuilder();
+				} else {
+					curlyBracesError = true;
+					break;
+				}
+			} else if (token == COMMA) {
+//				if(lastIndexLeft != null && lastIndexRight != null && lastIndexLeft < index && index < lastIndexRight && sb.length() != 0) {
+				if(lastIndexLeft != null && lastIndexLeft < index && sb.length() != 0) {
+					// ok
+					list.add(sb.toString());
+					sb = new StringBuilder();
+				} else {
+					curlyBracesError = true;
+					break;
+				}
+			} else {
+				sb.append(token);
+				lastIndexRegular = index;
 			}
 		}
 
+		if (curlyBracesError) {
+			displayService.showlnErr("Issue with curly braces: " + properties);
+			return null;
+		}
+
+		if ((lastIndexLeft == null && lastIndexRight == null) || (lastIndexLeft != null && lastIndexRight != null && lastIndexLeft < lastIndexRegular && lastIndexRegular < lastIndexRight)) {
+			// ok
+			if (sb.length() != 0) list.add(sb.toString());
+			System.out.println("LIST: " + list);
+			return list;
+		} else {
+			displayService.showlnErr("Issue with curly braces: " + properties);
+			return null;
+		}
+	}
+
+	private List<String> applyRules(List<String> list) {
+		// emty list
+		return null;
 	}
 }

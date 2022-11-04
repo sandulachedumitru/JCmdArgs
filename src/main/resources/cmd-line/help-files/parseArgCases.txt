@@ -1,0 +1,84 @@
+	key: [ARGUMENT]
+		values: [Argument(
+			type=ARGUMENT,
+			properties=ArgumentProperties(
+				definition=argument=sudokufile.txt,
+				argumentType=argument,
+				optionAllowedValues=sudokufile.txt))]
+		token: sudokufile.txt
+
+
+	key: [ALLOWED_ARGUMENTS_ORDER]
+		values: [Argument(
+			type=ALLOWED_ARGUMENTS_ORDER,
+			properties=ArgumentProperties(
+				definition=allowed_arguments_order={option,arguments_number,argument},
+				argumentType=allowed_arguments_order,
+				optionAllowedValues={option,arguments_number,argument}		))]
+		token: {option,arguments_number,argument}
+
+
+	key: [OPTION]
+		values: [Argument(
+			type=OPTION,
+			properties=ArgumentProperties(
+				definition=option=!{--help,-h},
+				argumentType=option,
+				optionAllowedValues=!{--help,-h}		))]
+		token: !{--help,-h}
+
+		values: [Argument(
+			type=OPTION,
+			properties=ArgumentPropertiesForOption(
+				definition=option={--debug,-d}={enable,disable},
+				argumentType=option,
+				optionAllowedValues={enable,disable}),
+				optionDefinition={--debug,-d}			))]
+		token: {enable,disable}
+
+		values: [Argument(
+			type=OPTION,
+			properties=ArgumentPropertiesForOption(
+				definition=option={--print-to,-pt}={Logs.txt,#},
+				argumentType=option,
+				optionAllowedValues={Logs.txt,#}),
+				optionDefinition={--print-to,-pt}		))]
+		token: {Logs.txt,#}
+
+
+	key: [ARGUMENTS_NUMBER]
+		values: [Argument(
+			type=ARGUMENTS_NUMBER,
+			properties=ArgumentProperties(
+				definition=arguments_number=1,
+				argumentType=arguments_number,
+				optionAllowedValues=1					))]
+		token: 1
+
+
+NUMBER OF ELEMENTS IN A LIST
+============================
+
+{--deploy-path,-dp}
+arg:   1		2					=> OK
+
+{--deploy-path} / {-dp}
+arg:   1		/	1				=> OK
+	equivalent with:
+--deploy-path / -dp					=> OK
+
+{}
+arg: 0								=> error
+
+{--deploy-path,-dp,-deployPath}
+arg:   1		2		3			=> error
+
+
+--deploy-pa{th, -dp)				=> error
+
+{--deploy-path,-dp,-{--deploy-path,-dp,-deployPath}}	= error
+
+
+,{}		,{		,}
+{,}		{,		,}
+{},		{,		},

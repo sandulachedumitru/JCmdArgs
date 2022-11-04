@@ -6,9 +6,11 @@
 # argument=[<argument>]
 # arguments_number=[<number>]
 
-# NOTE
-# =======
-# The spaces inside of argument are not allowed
+# =================================================	#
+# NOTE	!!											#
+# ==================================================#
+# The spaces inside of definitions are not allowed	#
+# =================================================	#
 
 allowed_arguments_order={option,arguments_number,argument}
 option=!{--help,-h} ORDER={option,arguments_number,argument}={one,two,three}
@@ -16,3 +18,4 @@ option={--debug,-d}={enable,disable}
 option={--print-to,-pt}={Logs.txt,#}
 arguments_number=1
 argument=sudokufile.txt
+option={--print-to,-pt,-prTO}={Logs.txt,#}
