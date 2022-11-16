@@ -1,7 +1,7 @@
 package com.hardcodacii.jcmdargs.service;
 
-import com.hardcodacii.jcmdargs.service.model.Argument;
-import com.hardcodacii.jcmdargs.service.model.ArgumentType;
+import com.hardcodacii.jcmdargs.service.model.Definition;
+import com.hardcodacii.jcmdargs.service.model.DefinitionType;
 
 import java.util.Map;
 import java.util.Optional;
@@ -11,5 +11,5 @@ import java.util.Optional;
  */
 
 public interface CmdLineDefinitionParserService {
-	Optional<Map<ArgumentType, Argument>> parseArguments();
+	Optional<Map<DefinitionType, Definition>> parseDefinitionFile();
 }

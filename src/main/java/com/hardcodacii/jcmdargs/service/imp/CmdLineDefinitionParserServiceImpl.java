@@ -24,10 +24,12 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 	private final DisplayService displayService;
 	private final LogProcessorService logProcessorService;
 
-	private final Map<ArgumentType, List<Argument>> parsedArgumentsMap = new HashMap<>();
+	private final Map<DefinitionType, List<DefinitionParser>> parsedDefinitionsMap = new HashMap<>();
+
+	private final Map<DefinitionType, Definition> definitionsMap = new HashMap<>();
 
 	@Override
-	public Optional<Map<ArgumentType, Argument>> parseArguments() {
+	public Optional<Map<DefinitionType, Definition>> parseDefinitionFile() {
 		var file = environmentService.PATH_TO_RESOURCES + environmentService.FILE_DEFINITION;
 		var fileExists = fileIOService.fileExistsInResources(file);
 
@@ -42,18 +44,17 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 			scanner.close();
 		}
 
-		for (var entry : parsedArgumentsMap.entrySet()) {
-			System.out.println("key: " + entry.getKey() + "\tvalues: " + entry.getValue());
+		for (var entry : parsedDefinitionsMap.entrySet()) {
+			System.out.println("key: " + entry.getKey());
 			for (var arg : entry.getValue()) {
 				System.out.println("\tvalue: " + arg);
-
 			}
 		}
 
 		// ??
-		if (parsedArgumentsMap.size() == 0) return Optional.empty();
+		if (parsedDefinitionsMap.size() == 0) return Optional.empty();
 
-		parseDefinitionFromArgument();
+		parseDefinition();
 
 		return Optional.empty();
 	}
@@ -68,88 +69,109 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 		int NUMBER_OF_GROUPS = 5 + 1;
 
 		displayService.showln(logProcessorService.processLogs("line: {}", line));
-		List<Argument> argumentList = new ArrayList<>();
+		List<DefinitionParser> definitionList = new ArrayList<>();
 		while (matcher.find()) {
 			for (var i = 0; i <= matcher.groupCount(); i++) {
 				displayService.showln(logProcessorService.processLogs("\tARGUMENT DEFINITION: group[{}] --> {}", String.valueOf(i), matcher.group(i)));
 			}
-			if (matcher.groupCount() != NUMBER_OF_GROUPS -1) {
+			if (matcher.groupCount() != NUMBER_OF_GROUPS - 1) {
 				displayService.showlnErr(logProcessorService.processLogs("The number of matching groups is not good. Expected {} but is actually {}", String.valueOf(NUMBER_OF_GROUPS), String.valueOf(matcher.groupCount())));
 				return;
 			}
 
-			ArgumentProperties argumentProperties;
-			if (matcher.group(NUMBER_OF_GROUPS -2) == null && matcher.group(NUMBER_OF_GROUPS -1) == null) {
+			DefinitionPropertiesParser definitionProperties;
+			if (matcher.group(NUMBER_OF_GROUPS - 2) == null && matcher.group(NUMBER_OF_GROUPS - 1) == null) {
 				int groupIndex = 0;
-				var properties = new ArgumentPropertiesForOption();
+				var properties = new DefinitionPropertiesParserForOption();
 				properties.setDefinition(matcher.group(groupIndex++));
-				properties.setArgumentType(matcher.group(groupIndex++));
-				properties.setOptionDefinition(matcher.group(groupIndex++));
-				properties.setOptionAllowedValues(matcher.group(groupIndex++));
-				argumentProperties = properties;
+				properties.setDefinitionType(matcher.group(groupIndex++));
+				properties.setOption(matcher.group(groupIndex++));
+				properties.setAllowedValues(matcher.group(groupIndex++));
+				definitionProperties = properties;
 			} else {
 				int groupIndex = NUMBER_OF_GROUPS;
-				var properties = new ArgumentProperties();
+				var properties = new DefinitionPropertiesParser();
 				properties.setDefinition(matcher.group(0));
-				properties.setOptionAllowedValues(matcher.group(--groupIndex));
-				properties.setArgumentType(matcher.group(--groupIndex));
-				argumentProperties = properties;
+				properties.setAllowedValues(matcher.group(--groupIndex));
+				properties.setDefinitionType(matcher.group(--groupIndex));
+				definitionProperties = properties;
 			}
 
-			Argument argument = new Argument();
-			var  type = ArgumentType.getArgumentTypeByCode(argumentProperties.getArgumentType());
+			var definitionParser = new DefinitionParser();
+			var type = DefinitionType.getDefinitionTypeByCode(definitionProperties.getDefinitionType());
 			if (type != null) {
-				argument.setType(type);
-				argument.setProperties(argumentProperties);
-				argumentList.add(argument);
+				definitionParser.setType(type);
+				definitionParser.setProperties(definitionProperties);
+				definitionList.add(definitionParser);
 			} else {
-				displayService.showlnErr(logProcessorService.processLogs("The argument type '{}' is unknown and will be ignored.", argumentProperties.getArgumentType()));
+				displayService.showlnErr(logProcessorService.processLogs("The definitionParser type '{}' is unknown and will be ignored.", definitionProperties.getDefinitionType()));
 			}
 		}
 
 		// map argument List to Map
-		for (var arg : argumentList) {
-			if (parsedArgumentsMap.containsKey(arg.getType())) {
-				var argList = parsedArgumentsMap.get(arg.getType());
-				//if (! argList.contains(arg))
-					argList.add(arg);
+		for (var def : definitionList) {
+			if (parsedDefinitionsMap.containsKey(def.getType())) {
+				var argList = parsedDefinitionsMap.get(def.getType());
+				argList.add(def);
 			} else {
-				var key = arg.getType();
-				List<Argument> values = new ArrayList<>();
-				values.add(arg);
-				parsedArgumentsMap.put(key, values);
+				var key = def.getType();
+				List<DefinitionParser> values = new ArrayList<>();
+				values.add(def);
+				parsedDefinitionsMap.put(key, values);
 			}
 		}
 	}
 
-	private void parseDefinitionFromArgument() {
-		if (parsedArgumentsMap.size() == 0) return;
+	private void parseDefinition() {
+		if (parsedDefinitionsMap.size() == 0) return;
 
-		for (var entry : parsedArgumentsMap.entrySet()) {
+		for (var entry : parsedDefinitionsMap.entrySet()) {
 			displayService.showln(logProcessorService.processLogs("key: [{}]", entry.getKey().name()));
-			for (var arg : entry.getValue()) {
-				displayService.showln(logProcessorService.processLogs("\tvalues: [{}]", arg.toString()));
-				if (arg.getType() == ArgumentType.OPTION) {
-					if (arg.getProperties() instanceof ArgumentPropertiesForOption) {
-						ArgumentPropertiesForOption argumentProperties = (ArgumentPropertiesForOption) arg.getProperties();
-						tokenize(argumentProperties.getOptionDefinition());
-//						tokenize((argumentProperties.getOptionAllowedValues()));
-					} else if (arg.getProperties() instanceof ArgumentProperties) {
+			for (var defParser : entry.getValue()) {
+				displayService.showln(logProcessorService.processLogs("\tvalues: [{}]", defParser.toString()));
 
+				if (defParser.getType() != null && defParser.getProperties() != null) {
+					if (defParser.getType() == DefinitionType.OPTION) {
+						Definition definition = new Definition();
+						if (defParser.getProperties() instanceof DefinitionPropertiesParserForOption) {
+							DefinitionPropertiesParserForOption defProp = (DefinitionPropertiesParserForOption) defParser.getProperties();
+							definition.setOptsDefinitions(tokenize(defProp.getOption()));
+							definition.setAllowedValues(tokenize((defProp.getAllowedValues())));
+						} else { // defParser.getProperties() is a DefinitionPropertiesParser
+							DefinitionPropertiesParser defProp = defParser.getProperties();
+							definition.setOptsDefinitions(tokenize(defProp.getDefinitionType()));
+							definition.setAllowedValues(tokenize((defProp.getAllowedValues())));
+						}
+						definitionsMap.put(DefinitionType.OPTION, definition);
+					} else if (defParser.getType() == DefinitionType.COMMAND) {
+						DefinitionPropertiesParser defProp = defParser.getProperties();
+						Definition definition = new Definition();
+						definition.setOptsDefinitions(tokenize(defProp.getDefinitionType()));
+						definition.setAllowedValues(tokenize((defProp.getAllowedValues())));
+						definitionsMap.put(DefinitionType.OPTION, definition);
+					} else if (defParser.getType() == DefinitionType.ARGUMENT) {
+						DefinitionPropertiesParser defProp = defParser.getProperties();
+						Definition definition = new Definition();
+						definition.setOptsDefinitions(tokenize(defProp.getDefinitionType()));
+						definition.setAllowedValues(tokenize((defProp.getAllowedValues())));
+						definitionsMap.put(DefinitionType.OPTION, definition);
+					} else if (defParser.getType() == DefinitionType.ARGUMENTS_NUMBER) {
+						DefinitionPropertiesParser defProp = defParser.getProperties();
+						Definition definition = new Definition();
+						definition.setOptsDefinitions(tokenize(defProp.getDefinitionType()));
+						definition.setAllowedValues(tokenize((defProp.getAllowedValues())));
+						definitionsMap.put(DefinitionType.OPTION, definition);
+					} else if (defParser.getType() == DefinitionType.ALLOWED_ARGUMENTS_ORDER) {
+						DefinitionPropertiesParser defProp = defParser.getProperties();
+						Definition definition = new Definition();
+						definition.setOptsDefinitions(tokenize(defProp.getDefinitionType()));
+						definition.setAllowedValues(tokenize((defProp.getAllowedValues())));
+						definitionsMap.put(DefinitionType.OPTION, definition);
 					} else {
-
+						// error: the type is not registered
 					}
-
-				} else if (arg.getType() == ArgumentType.COMMAND) {
-
-				} else if (arg.getType() == ArgumentType.ARGUMENT) {
-
-				} else if (arg.getType() == ArgumentType.ARGUMENTS_NUMBER) {
-
-				} else if (arg.getType() == ArgumentType.ALLOWED_ARGUMENTS_ORDER) {
-
 				} else {
-
+					// defParser's type/properties is null
 				}
 
 
@@ -208,7 +230,7 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 				}
 			} else if (token == COMMA) {
 //				if(lastIndexLeft != null && lastIndexRight != null && lastIndexLeft < index && index < lastIndexRight && sb.length() != 0) {
-				if(lastIndexLeft != null && lastIndexLeft < index && sb.length() != 0) {
+				if (lastIndexLeft != null && lastIndexLeft < index && sb.length() != 0) {
 					// ok
 					list.add(sb.toString());
 					sb = new StringBuilder();
