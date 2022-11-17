@@ -6,7 +6,7 @@ import java.util.stream.Stream;
  * @author Dumitru Săndulache (sandulachedumitru@hotmail.com)
  */
 
-public enum ArgumentType {
+public enum DefinitionType {
 	OPTION("option"),
 	COMMAND("command"),
 	ARGUMENT("argument"),
@@ -14,7 +14,7 @@ public enum ArgumentType {
 	ALLOWED_ARGUMENTS_ORDER("allowed_arguments_order");
 
 	private String argumentCode;
-	ArgumentType(String argumentCode) {
+	DefinitionType(String argumentCode) {
 		this.argumentCode = argumentCode;
 	}
 
@@ -22,8 +22,8 @@ public enum ArgumentType {
 		return argumentCode;
 	}
 
-	public static ArgumentType getArgumentTypeByCode(String argumentCode) {
-		var argumentTypeOpt = Stream.of(ArgumentType.values())
+	public static DefinitionType getDefinitionTypeByCode(String argumentCode) {
+		var argumentTypeOpt = Stream.of(DefinitionType.values())
 				.filter(argumentType -> argumentType.getArgumentCode().equalsIgnoreCase(argumentCode))
 				.findFirst();
 		return argumentTypeOpt.orElse(null);

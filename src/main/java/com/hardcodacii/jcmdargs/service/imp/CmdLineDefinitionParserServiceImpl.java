@@ -56,6 +56,12 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 
 		parseDefinition();
 
+		for (var entry : definitionsMap.entrySet()) {
+			System.out.println("key: " + entry.getKey() + "\t\t\t\t\tvalue: " + entry.getValue());
+		}
+
+
+
 		return Optional.empty();
 	}
 
@@ -131,45 +137,57 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 				displayService.showln(logProcessorService.processLogs("\tvalues: [{}]", defParser.toString()));
 
 				if (defParser.getType() != null && defParser.getProperties() != null) {
-					if (defParser.getType() == DefinitionType.OPTION) {
-						Definition definition = new Definition();
-						if (defParser.getProperties() instanceof DefinitionPropertiesParserForOption) {
-							DefinitionPropertiesParserForOption defProp = (DefinitionPropertiesParserForOption) defParser.getProperties();
-							definition.setOptsDefinitions(tokenize(defProp.getOption()));
-							definition.setAllowedValues(tokenize((defProp.getAllowedValues())));
-						} else { // defParser.getProperties() is a DefinitionPropertiesParser
-							DefinitionPropertiesParser defProp = defParser.getProperties();
-							definition.setOptsDefinitions(tokenize(defProp.getDefinitionType()));
-							definition.setAllowedValues(tokenize((defProp.getAllowedValues())));
-						}
-						definitionsMap.put(DefinitionType.OPTION, definition);
-					} else if (defParser.getType() == DefinitionType.COMMAND) {
-						DefinitionPropertiesParser defProp = defParser.getProperties();
-						Definition definition = new Definition();
-						definition.setOptsDefinitions(tokenize(defProp.getDefinitionType()));
+					var definition = new Definition();
+					if (defParser.getType() == DefinitionType.OPTION && defParser.getProperties() instanceof DefinitionPropertiesParserForOption) {
+						DefinitionPropertiesParserForOption defProp = (DefinitionPropertiesParserForOption) defParser.getProperties();
+						definition.setOptsDefinitions(tokenize(defProp.getOption()));
 						definition.setAllowedValues(tokenize((defProp.getAllowedValues())));
-						definitionsMap.put(DefinitionType.OPTION, definition);
-					} else if (defParser.getType() == DefinitionType.ARGUMENT) {
-						DefinitionPropertiesParser defProp = defParser.getProperties();
-						Definition definition = new Definition();
-						definition.setOptsDefinitions(tokenize(defProp.getDefinitionType()));
-						definition.setAllowedValues(tokenize((defProp.getAllowedValues())));
-						definitionsMap.put(DefinitionType.OPTION, definition);
-					} else if (defParser.getType() == DefinitionType.ARGUMENTS_NUMBER) {
-						DefinitionPropertiesParser defProp = defParser.getProperties();
-						Definition definition = new Definition();
-						definition.setOptsDefinitions(tokenize(defProp.getDefinitionType()));
-						definition.setAllowedValues(tokenize((defProp.getAllowedValues())));
-						definitionsMap.put(DefinitionType.OPTION, definition);
-					} else if (defParser.getType() == DefinitionType.ALLOWED_ARGUMENTS_ORDER) {
-						DefinitionPropertiesParser defProp = defParser.getProperties();
-						Definition definition = new Definition();
-						definition.setOptsDefinitions(tokenize(defProp.getDefinitionType()));
-						definition.setAllowedValues(tokenize((defProp.getAllowedValues())));
-						definitionsMap.put(DefinitionType.OPTION, definition);
 					} else {
-						// error: the type is not registered
+						DefinitionPropertiesParser defProp = defParser.getProperties();
+						definition.setOptsDefinitions(tokenize(defProp.getDefinitionType()));
+						definition.setAllowedValues(tokenize((defProp.getAllowedValues())));
 					}
+					definitionsMap.put(defParser.getType(), definition);
+
+//					if (defParser.getType() == DefinitionType.OPTION) {
+//						Definition definition = new Definition();
+//						if (defParser.getProperties() instanceof DefinitionPropertiesParserForOption) {
+//							DefinitionPropertiesParserForOption defProp = (DefinitionPropertiesParserForOption) defParser.getProperties();
+//							definition.setOptsDefinitions(tokenize(defProp.getOption()));
+//							definition.setAllowedValues(tokenize((defProp.getAllowedValues())));
+//						} else { // defParser.getProperties() is a DefinitionPropertiesParser
+//							DefinitionPropertiesParser defProp = defParser.getProperties();
+//							definition.setOptsDefinitions(tokenize(defProp.getDefinitionType()));
+//							definition.setAllowedValues(tokenize((defProp.getAllowedValues())));
+//						}
+//						definitionsMap.put(DefinitionType.OPTION, definition);
+//					} else if (defParser.getType() == DefinitionType.COMMAND) {
+//						DefinitionPropertiesParser defProp = defParser.getProperties();
+//						Definition definition = new Definition();
+//						definition.setOptsDefinitions(tokenize(defProp.getDefinitionType()));
+//						definition.setAllowedValues(tokenize((defProp.getAllowedValues())));
+//						definitionsMap.put(DefinitionType.OPTION, definition);
+//					} else if (defParser.getType() == DefinitionType.ARGUMENT) {
+//						DefinitionPropertiesParser defProp = defParser.getProperties();
+//						Definition definition = new Definition();
+//						definition.setOptsDefinitions(tokenize(defProp.getDefinitionType()));
+//						definition.setAllowedValues(tokenize((defProp.getAllowedValues())));
+//						definitionsMap.put(DefinitionType.OPTION, definition);
+//					} else if (defParser.getType() == DefinitionType.ARGUMENTS_NUMBER) {
+//						DefinitionPropertiesParser defProp = defParser.getProperties();
+//						Definition definition = new Definition();
+//						definition.setOptsDefinitions(tokenize(defProp.getDefinitionType()));
+//						definition.setAllowedValues(tokenize((defProp.getAllowedValues())));
+//						definitionsMap.put(DefinitionType.OPTION, definition);
+//					} else if (defParser.getType() == DefinitionType.ALLOWED_ARGUMENTS_ORDER) {
+//						DefinitionPropertiesParser defProp = defParser.getProperties();
+//						Definition definition = new Definition();
+//						definition.setOptsDefinitions(tokenize(defProp.getDefinitionType()));
+//						definition.setAllowedValues(tokenize((defProp.getAllowedValues())));
+//						definitionsMap.put(DefinitionType.OPTION, definition);
+//					} else {
+//						// error: the type is not registered
+//					}
 				} else {
 					// defParser's type/properties is null
 				}

@@ -7,7 +7,7 @@ import lombok.Data;
  */
 
 @Data
-public class Argument {
-	private ArgumentType type;
-	private ArgumentProperties properties;
+public class DefinitionParser {
+	private DefinitionType type;
+	private DefinitionPropertiesParser properties;
 }

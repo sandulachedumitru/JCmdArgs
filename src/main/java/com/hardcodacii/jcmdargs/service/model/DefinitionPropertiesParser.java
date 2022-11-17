@@ -8,8 +8,8 @@ import lombok.Data;
  */
 
 @Data
-public class ArgumentProperties {
+public class DefinitionPropertiesParser {
 	String definition; // ex: option={--debug,-d}={enable,disable} OR argument=ExampleFile.txt
-	String argumentType; // ex: option OR argument
-	String optionAllowedValues; // ex: {enable,disable} OR ExampleFile.txt
+	String definitionType; // ex: option OR argument
+	String allowedValues; // ex: {enable,disable} OR ExampleFile.txt
 }

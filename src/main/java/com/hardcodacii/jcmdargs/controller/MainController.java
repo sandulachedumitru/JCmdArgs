@@ -13,6 +13,6 @@ import org.springframework.stereotype.Controller;
 public class MainController {
 	private final CmdLineDefinitionParserService cmdLineDefinitionParserService;
 	public void start(String[] args) {
-		cmdLineDefinitionParserService.parseArguments();
+		cmdLineDefinitionParserService.parseDefinitionFile();
 	}
 }

@@ -9,6 +9,6 @@ import lombok.ToString;
 
 @Data
 @ToString(callSuper = true)
-public class ArgumentPropertiesForOption extends ArgumentProperties {
-	String optionDefinition; // ex: {--help,-h}
+public class DefinitionPropertiesParserForOption extends DefinitionPropertiesParser {
+	String option; // ex: {--help,-h}
 }
