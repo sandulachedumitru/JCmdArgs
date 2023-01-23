@@ -220,6 +220,7 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 		Integer lastIndexLeft = null;
 		Integer lastIndexRight = null;
 		Integer lastIndexRegular = null;
+		Integer lastIndexComma = null;
 		int numberOfCurlyBracesLeft = 0;
 		int numberOfCurlyBracesRight = 0;
 
@@ -227,6 +228,7 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 		List<String> list = new ArrayList<>();
 
 		for (var index = start; index < properties.length(); index++) {
+			lastIndexRegular = index;
 			char token = properties.charAt(index);
 			if (token == CURLY_BRACES_LEFT) {
 				if (++numberOfCurlyBracesLeft <= 1 && sb.length() == 0) { // 1 left and 1 right curly brace: {...}
@@ -239,6 +241,7 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 			} else if (token == CURLY_BRACES_RIGHT) {
 				lastIndexRight = index;
 				if (++numberOfCurlyBracesRight <= 1 && lastIndexLeft != null && lastIndexLeft < lastIndexRight && sb.length() != 0) {
+//				if (++numberOfCurlyBracesRight <= 1 && lastIndexLeft != null && lastIndexLeft < lastIndexRight) {
 					// ok
 					list.add(sb.toString());
 					sb = new StringBuilder();
@@ -247,8 +250,8 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 					break;
 				}
 			} else if (token == COMMA) {
-//				if(lastIndexLeft != null && lastIndexRight != null && lastIndexLeft < index && index < lastIndexRight && sb.length() != 0) {
 				if (lastIndexLeft != null && lastIndexLeft < index && sb.length() != 0) {
+					lastIndexComma = index;
 					// ok
 					list.add(sb.toString());
 					sb = new StringBuilder();
@@ -258,7 +261,6 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 				}
 			} else {
 				sb.append(token);
-				lastIndexRegular = index;
 			}
 		}
 
@@ -267,9 +269,8 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 			return null;
 		}
 
-		if ((lastIndexLeft == null && lastIndexRight == null) || (lastIndexLeft != null && lastIndexRight != null && lastIndexLeft < lastIndexRegular && lastIndexRegular < lastIndexRight)) {
+		if ((lastIndexLeft == null && lastIndexRight == null) || (lastIndexLeft != null && lastIndexRight != null && lastIndexLeft < lastIndexRegular && lastIndexRegular <= lastIndexRight)) {
 			// ok
-			if (sb.length() != 0) list.add(sb.toString());
 			System.out.println("LIST: " + list);
 			return list;
 		} else {
