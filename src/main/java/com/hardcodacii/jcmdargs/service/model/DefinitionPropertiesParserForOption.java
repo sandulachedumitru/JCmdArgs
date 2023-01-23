@@ -11,4 +11,5 @@ import lombok.ToString;
 @ToString(callSuper = true)
 public class DefinitionPropertiesParserForOption extends DefinitionPropertiesParser {
 	String option; // ex: {--help,-h}
+	boolean singleOption = false;
 }

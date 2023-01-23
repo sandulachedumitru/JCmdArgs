@@ -29,7 +29,7 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 	private final Map<DefinitionType, Definition> definitionsMap = new HashMap<>();
 
 	@Override
-	public Optional<Map<DefinitionType, Definition>> parseDefinitionFile() {
+	public Optional<Map<DefinitionType, DefinitionOption>> parseDefinitionFile() {
 		var file = environmentService.PATH_TO_RESOURCES + environmentService.FILE_DEFINITION;
 		var fileExists = fileIOService.fileExistsInResources(file);
 
@@ -137,68 +137,50 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 				displayService.showln(logProcessorService.processLogs("\tvalues: [{}]", defParser.toString()));
 
 				if (defParser.getType() != null && defParser.getProperties() != null) {
-					var definition = new Definition();
-					if (defParser.getType() == DefinitionType.OPTION && defParser.getProperties() instanceof DefinitionPropertiesParserForOption) {
-						DefinitionPropertiesParserForOption defProp = (DefinitionPropertiesParserForOption) defParser.getProperties();
-						definition.setOptsDefinitions(tokenize(defProp.getOption()));
-						definition.setAllowedValues(tokenize((defProp.getAllowedValues())));
+					if (defParser.getType() == DefinitionType.OPTION) {
+						if (defParser.getProperties() instanceof DefinitionPropertiesParserForOption) {
+							var defProp = (DefinitionPropertiesParserForOption) defParser.getProperties();
+
+							var definition = new DefinitionOption();
+							definition.setType(DefinitionType.OPTION);
+							var transporter = tokenize(defProp.getOption());
+							if (transporter != null) {
+								definition.setOptsDefinitions(transporter.items);
+								definition.setSingleOption(transporter.singleOption);
+							}
+							transporter = tokenize(defProp.getAllowedValues());
+							if (transporter != null) {
+								definition.setAllowedValues(transporter.items);
+								definition.setSingleOption(transporter.singleOption);
+							}
+							definitionsMap.put(defParser.getType(), definition);
+						} else {
+							// TODO display error ; ErrorManager
+						}
 					} else {
 						DefinitionPropertiesParser defProp = defParser.getProperties();
-						definition.setOptsDefinitions(tokenize(defProp.getDefinitionType()));
-						definition.setAllowedValues(tokenize((defProp.getAllowedValues())));
+
+						var definition = new DefinitionNonOption();
+						definition.setType(defParser.getType());
+						var transporter = tokenize(defProp.getDefinitionType());
+						if (transporter != null) {
+							definition.setPossibleValues(transporter.items);
+						}
+						transporter = tokenize((defProp.getAllowedValues()));
+						if (transporter != null) {
+							definition.setPossibleValues(transporter.items);
+						}
+						definitionsMap.put(defParser.getType(), definition);
 					}
-					definitionsMap.put(defParser.getType(), definition);
 
-//					if (defParser.getType() == DefinitionType.OPTION) {
-//						Definition definition = new Definition();
-//						if (defParser.getProperties() instanceof DefinitionPropertiesParserForOption) {
-//							DefinitionPropertiesParserForOption defProp = (DefinitionPropertiesParserForOption) defParser.getProperties();
-//							definition.setOptsDefinitions(tokenize(defProp.getOption()));
-//							definition.setAllowedValues(tokenize((defProp.getAllowedValues())));
-//						} else { // defParser.getProperties() is a DefinitionPropertiesParser
-//							DefinitionPropertiesParser defProp = defParser.getProperties();
-//							definition.setOptsDefinitions(tokenize(defProp.getDefinitionType()));
-//							definition.setAllowedValues(tokenize((defProp.getAllowedValues())));
-//						}
-//						definitionsMap.put(DefinitionType.OPTION, definition);
-//					} else if (defParser.getType() == DefinitionType.COMMAND) {
-//						DefinitionPropertiesParser defProp = defParser.getProperties();
-//						Definition definition = new Definition();
-//						definition.setOptsDefinitions(tokenize(defProp.getDefinitionType()));
-//						definition.setAllowedValues(tokenize((defProp.getAllowedValues())));
-//						definitionsMap.put(DefinitionType.OPTION, definition);
-//					} else if (defParser.getType() == DefinitionType.ARGUMENT) {
-//						DefinitionPropertiesParser defProp = defParser.getProperties();
-//						Definition definition = new Definition();
-//						definition.setOptsDefinitions(tokenize(defProp.getDefinitionType()));
-//						definition.setAllowedValues(tokenize((defProp.getAllowedValues())));
-//						definitionsMap.put(DefinitionType.OPTION, definition);
-//					} else if (defParser.getType() == DefinitionType.ARGUMENTS_NUMBER) {
-//						DefinitionPropertiesParser defProp = defParser.getProperties();
-//						Definition definition = new Definition();
-//						definition.setOptsDefinitions(tokenize(defProp.getDefinitionType()));
-//						definition.setAllowedValues(tokenize((defProp.getAllowedValues())));
-//						definitionsMap.put(DefinitionType.OPTION, definition);
-//					} else if (defParser.getType() == DefinitionType.ALLOWED_ARGUMENTS_ORDER) {
-//						DefinitionPropertiesParser defProp = defParser.getProperties();
-//						Definition definition = new Definition();
-//						definition.setOptsDefinitions(tokenize(defProp.getDefinitionType()));
-//						definition.setAllowedValues(tokenize((defProp.getAllowedValues())));
-//						definitionsMap.put(DefinitionType.OPTION, definition);
-//					} else {
-//						// error: the type is not registered
-//					}
-				} else {
-					// defParser's type/properties is null
 				}
-
-
 			}
-		}
 
+		}
 	}
 
-	private List<String> tokenize(String properties) {
+
+	private DefinitionPropertiesTokenizedTransporter tokenize(String properties) {
 		var SQUARE_BRACKET_LEFT = environmentService.TOKEN_SPECIAL_CHAR_SQUARE_BRACKET_LEFT;
 		var SQUARE_BRACKET_RIGHT = environmentService.TOKEN_SPECIAL_CHAR_SQUARE_BRACKET_RIGHT;
 		var CURLY_BRACES_LEFT = environmentService.TOKEN_SPECIAL_CHAR_CURLY_BRACES_LEFT;
@@ -216,11 +198,13 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 		var singleOptionAllowed = properties.startsWith(String.valueOf(SINGLE_OPTION_ALLOWED));
 		var start = singleOptionAllowed ? 1 : 0;
 
+		var transporter = new DefinitionPropertiesTokenizedTransporter();
+		transporter.singleOption = singleOptionAllowed;
+
 		boolean curlyBracesError = false;
 		Integer lastIndexLeft = null;
 		Integer lastIndexRight = null;
 		Integer lastIndexRegular = null;
-		Integer lastIndexComma = null;
 		int numberOfCurlyBracesLeft = 0;
 		int numberOfCurlyBracesRight = 0;
 
@@ -251,7 +235,6 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 				}
 			} else if (token == COMMA) {
 				if (lastIndexLeft != null && lastIndexLeft < index && sb.length() != 0) {
-					lastIndexComma = index;
 					// ok
 					list.add(sb.toString());
 					sb = new StringBuilder();
@@ -272,11 +255,18 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 		if ((lastIndexLeft == null && lastIndexRight == null) || (lastIndexLeft != null && lastIndexRight != null && lastIndexLeft < lastIndexRegular && lastIndexRegular <= lastIndexRight)) {
 			// ok
 			System.out.println("LIST: " + list);
-			return list;
+			transporter.items = list;
+
+			return transporter;
 		} else {
 			displayService.showlnErr("Issue with curly braces: " + properties);
 			return null;
 		}
+	}
+
+	private static class DefinitionPropertiesTokenizedTransporter {
+		private List<String> items;
+		private boolean singleOption = false;
 	}
 
 	private List<String> applyRules(List<String> list) {

@@ -20,4 +20,4 @@
 #argument=sudokufile.txt
 #option={--print-to,-pt,-prTO}={Logs.txt,#}
 
-option=!{--help,-h}={}
+option=!{--help,-h}=!{}
