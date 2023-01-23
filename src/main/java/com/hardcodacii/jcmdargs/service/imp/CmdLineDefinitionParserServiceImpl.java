@@ -240,8 +240,8 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 				}
 			} else if (token == CURLY_BRACES_RIGHT) {
 				lastIndexRight = index;
-				if (++numberOfCurlyBracesRight <= 1 && lastIndexLeft != null && lastIndexLeft < lastIndexRight && sb.length() != 0) {
-//				if (++numberOfCurlyBracesRight <= 1 && lastIndexLeft != null && lastIndexLeft < lastIndexRight) {
+//				if (++numberOfCurlyBracesRight <= 1 && lastIndexLeft != null && lastIndexLeft < lastIndexRight && sb.length() != 0) {
+				if (++numberOfCurlyBracesRight <= 1 && lastIndexLeft != null && lastIndexLeft < lastIndexRight) {
 					// ok
 					list.add(sb.toString());
 					sb = new StringBuilder();
