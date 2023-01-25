@@ -1,4 +1,4 @@
-package com.hardcodacii.jcmdargs.service.imp;
+package com.hardcodacii.jcmdargs.service.impl;
 
 import com.hardcodacii.jcmdargs.global.SystemEnvironmentVariable;
 import com.hardcodacii.jcmdargs.service.CmdLineDefinitionParserService;
@@ -6,6 +6,7 @@ import com.hardcodacii.jcmdargs.service.DisplayService;
 import com.hardcodacii.jcmdargs.service.FileIOService;
 import com.hardcodacii.jcmdargs.service.LogProcessorService;
 import com.hardcodacii.jcmdargs.service.model.*;
+import com.hardcodacii.jcmdargs.service.model.Error;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +24,7 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 	private final SystemEnvironmentVariable environmentService;
 	private final DisplayService displayService;
 	private final LogProcessorService logProcessorService;
+	private final ErrorServiceImpl errorService;
 
 	private final Map<DefinitionType, List<DefinitionParser>> parsedDefinitionsMap = new HashMap<>();
 
@@ -36,31 +38,45 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 		if (fileExists) {
 			String fileContent = fileIOService.readStringFromFileInResources(file);
 
+			System.out.println("\nLINE PROCESSOR");
+			System.out.println("==============");
 			var scanner = new Scanner(fileContent);
 			while (scanner.hasNextLine()) {
 				var line = scanner.nextLine();
 				lineProcessor(line.trim());
 			}
+			System.out.println();
 			scanner.close();
 		}
 
+		System.out.println("\nPARSED DEFINITION MAP");
+		System.out.println("=====================");
 		for (var entry : parsedDefinitionsMap.entrySet()) {
 			System.out.println("key: " + entry.getKey());
 			for (var arg : entry.getValue()) {
 				System.out.println("\tvalue: " + arg);
 			}
 		}
+		System.out.println();
 
 		// ??
 		if (parsedDefinitionsMap.size() == 0) return Optional.empty();
 
 		parseDefinition();
 
+		System.out.println("\nDEFINITIONS MAP");
+		System.out.println("===============");
 		for (var entry : definitionsMap.entrySet()) {
 			System.out.println("key: " + entry.getKey() + "\t\t\t\t\tvalue: " + entry.getValue());
 		}
+		System.out.println();
 
-
+		System.out.println("\nERROR LIST");
+		System.out.println("==========");
+		for (var err : errorService.getErrors()) {
+			System.out.println("\t" + err.getMessage());
+		}
+		System.out.println();
 
 		return Optional.empty();
 	}
@@ -129,7 +145,7 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 	}
 
 	private void parseDefinition() {
-		if (parsedDefinitionsMap.size() == 0) return;
+		if (parsedDefinitionsMap.size() == 0) return; // TODO log and errorService
 
 		for (var entry : parsedDefinitionsMap.entrySet()) {
 			displayService.showln(logProcessorService.processLogs("key: [{}]", entry.getKey().name()));
@@ -151,11 +167,16 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 							transporter = tokenize(defProp.getAllowedValues());
 							if (transporter != null) {
 								definition.setAllowedValues(transporter.items);
+								if (transporter.singleOption) {
+									displayService.showlnErr("Character ['!'] not allowed: " + defProp.getAllowedValues());
+									errorService.addError(new Error("Character ['!'] not allowed" + defProp.getAllowedValues()));
+								}
 								definition.setSingleOption(transporter.singleOption);
 							}
 							definitionsMap.put(defParser.getType(), definition);
 						} else {
-							// TODO display error ; ErrorManager
+							displayService.showlnErr("Definition with type OPTION must be of type: " + DefinitionPropertiesParserForOption.class.getName());
+							errorService.addError(new Error("Definition with type OPTION must be of type: " + DefinitionPropertiesParserForOption.class.getName()));
 						}
 					} else {
 						DefinitionPropertiesParser defProp = defParser.getProperties();
@@ -172,13 +193,10 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 						}
 						definitionsMap.put(defParser.getType(), definition);
 					}
-
 				}
 			}
-
 		}
 	}
-
 
 	private DefinitionPropertiesTokenizedTransporter tokenize(String properties) {
 		var SQUARE_BRACKET_LEFT = environmentService.TOKEN_SPECIAL_CHAR_SQUARE_BRACKET_LEFT;
@@ -224,7 +242,6 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 				}
 			} else if (token == CURLY_BRACES_RIGHT) {
 				lastIndexRight = index;
-//				if (++numberOfCurlyBracesRight <= 1 && lastIndexLeft != null && lastIndexLeft < lastIndexRight && sb.length() != 0) {
 				if (++numberOfCurlyBracesRight <= 1 && lastIndexLeft != null && lastIndexLeft < lastIndexRight) {
 					// ok
 					list.add(sb.toString());

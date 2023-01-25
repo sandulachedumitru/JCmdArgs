@@ -1,4 +1,4 @@
-package com.hardcodacii.jcmdargs.service.imp;
+package com.hardcodacii.jcmdargs.service.impl;
 
 
 import com.hardcodacii.jcmdargs.service.DisplayService;
