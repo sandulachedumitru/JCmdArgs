@@ -17,59 +17,58 @@ import org.springframework.stereotype.Service;
 public class DisplayServiceImpl implements DisplayService {
 	private final SystemEnvironmentVariable environment;
 
-	private final String CRLF = environment.LOG_PARAGRAPH_CRLF;
-	private final String INFO = environment.LOG_INFO_PREFIX;
-	private final String ERROR = environment.LOG_ERROR_PREFIX;
-	private final String WARNING = environment.LOG_WARNING_PREFIX;
-
 	private boolean isNewLine = true;
 
 	@Override
-	public void infoLn(Object infoLog, Object... args) {
-		printLn(INFO, infoLog, args);
+	public String infoLn(Object infoLog, Object... args) {
+		return printLn(INFO(), infoLog, args);
 	}
 
 	@Override
-	public void info(Object infoLog, Object... args) {
-		print(INFO, infoLog, args);
+	public String info(Object infoLog, Object... args) {
+		return print(INFO(), infoLog, args);
 	}
 
 	@Override
-	public void errorLn(Object errorLog, Object... args) {
-		printLn(ERROR, errorLog, args);
+	public String errorLn(Object errorLog, Object... args) {
+		return printLn(ERROR(), errorLog, args);
 	}
 
 	@Override
-	public void error(Object errorLog, Object... args) {
-		print(ERROR, errorLog, args);
+	public String error(Object errorLog, Object... args) {
+		return print(ERROR(), errorLog, args);
 	}
 
 	@Override
-	public void warningLn(Object warningLog, Object... args) {
-		printLn(WARNING, warningLog, args);
+	public String warningLn(Object warningLog, Object... args) {
+		return printLn(WARNING(), warningLog, args);
 	}
 
 	@Override
-	public void warning(Object warningLog, Object... args) {
-		print(WARNING, warningLog, args);
+	public String warning(Object warningLog, Object... args) {
+		return print(WARNING(), warningLog, args);
 	}
 
-	private void printLn(String prefix, Object logObj, Object... args) {
+	private String printLn(String prefix, Object logObj, Object... args) {
 		if (!isNewLine) {
 			System.out.println();
 			isNewLine = true;
 		}
 		var log = prefix + logObj.toString();
-		System.err.println(processLogs(log, args));
+		var processedLog = processLogs(log, args);
+		System.out.println(processedLog);
+		return processedLog;
 	}
 
-	private void print(String prefix, Object logObj, Object... args) {
+	private String print(String prefix, Object logObj, Object... args) {
 		var log = logObj.toString();
 		if (isNewLine) {
 			log = prefix + log;
 			isNewLine = false;
 		}
-		System.out.print(processLogs(log, args));
+		var processedLog = processLogs(log, args);
+		System.out.print(processedLog);
+		return processedLog;
 	}
 
 	private String processLogs(String log, Object... args) {
@@ -87,5 +86,17 @@ public class DisplayServiceImpl implements DisplayService {
 		}
 
 		return newLog;
+	}
+
+	private String ERROR() {
+		return environment.LOG_ERROR_PREFIX;
+	}
+
+	private String INFO() {
+		return environment.LOG_INFO_PREFIX;
+	}
+
+	private String WARNING() {
+		return environment.LOG_WARNING_PREFIX;
 	}
 }

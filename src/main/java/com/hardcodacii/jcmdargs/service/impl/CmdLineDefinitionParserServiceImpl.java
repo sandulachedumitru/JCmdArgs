@@ -25,8 +25,7 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 	private final ErrorServiceImpl errorService;
 
 	private final Map<DefinitionType, List<DefinitionParser>> parsedDefinitionsMap = new HashMap<>();
-
-	private final Map<DefinitionType, Definition> definitionsMap = new HashMap<>();
+	private final Map<DefinitionType, List<Definition>> definitionsMap = new HashMap<>();
 
 	@Override
 	public Optional<Map<DefinitionType, DefinitionOption>> parseDefinitionFile() {
@@ -65,7 +64,10 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 		System.out.println("\nDEFINITIONS MAP");
 		System.out.println("===============");
 		for (var entry : definitionsMap.entrySet()) {
-			System.out.println("key: " + entry.getKey() + "\t\t\t\t\tvalue: " + entry.getValue());
+			System.out.println("key: " + entry.getKey());
+			for (var arg : entry.getValue()) {
+				System.out.println("\tvalue: " + arg);
+			}
 		}
 		System.out.println();
 
@@ -126,7 +128,7 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 				definitionParser.setProperties(definitionProperties);
 				definitionList.add(definitionParser);
 			} else {
-				displayService.errorLn("The definitionParser type '{}' is unknown and will be ignored.", definitionProperties.getDefinitionType());
+				errorService.addError(new Error(displayService.errorLn("The definitionParser type '{}' is unknown.", definitionProperties.getDefinitionType())));
 			}
 		}
 
@@ -146,6 +148,8 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 
 	private void parseDefinition() {
 		if (parsedDefinitionsMap.size() == 0) return; // TODO log and errorService
+
+		List<Definition> definitionList = new ArrayList<>();
 
 		for (var entry : parsedDefinitionsMap.entrySet()) {
 			displayService.infoLn("key: [{}]", entry.getKey().name());
@@ -168,15 +172,16 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 							if (transporter != null) {
 								definition.setAllowedValues(transporter.items);
 								if (transporter.singleOption) {
-									displayService.errorLn("Character ['!'] not allowed: " + defProp.getAllowedValues());
-									errorService.addError(new Error("Character ['!'] not allowed" + defProp.getAllowedValues()));
+									errorService.addError(new Error(displayService.errorLn("Character ['!'] not allowed: " + defProp.getAllowedValues())));
 								}
 //								definition.setSingleOption(transporter.singleOption);
 							}
-							definitionsMap.put(defPropParser.getType(), definition);
+							definitionList.add(definition);
 						} else {
-							displayService.errorLn("Definition with type OPTION must be of type: " + DefinitionPropertiesParserForOption.class.getName());
-							errorService.addError(new Error("Definition with type OPTION must be of type: " + DefinitionPropertiesParserForOption.class.getName()));
+							var errMsg = displayService.errorLn("Definition with type OPTION must be of type: {}. Found type: {}. You have option={opt1, opt2, ..}. Try option={opt1, opt2, ..}={}",
+									DefinitionPropertiesParserForOption.class.getSimpleName(),
+									defPropParser.getProperties().getClass().getSimpleName());
+							errorService.addError(new Error(errMsg));
 						}
 					} else {
 						DefinitionPropertiesParser defProp = defPropParser.getProperties();
@@ -191,9 +196,22 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 						if (transporter != null) {
 							definition.setPossibleValues(transporter.items);
 						}
-						definitionsMap.put(defPropParser.getType(), definition);
+						definitionList.add(definition);
 					}
 				}
+			}
+		}
+
+		// map argument List to Map
+		for (var def : definitionList) {
+			if (definitionsMap.containsKey(def.getType())) {
+				var argList = definitionsMap.get(def.getType());
+				argList.add(def);
+			} else {
+				var key = def.getType();
+				List<Definition> values = new ArrayList<>();
+				values.add(def);
+				definitionsMap.put(key, values);
 			}
 		}
 	}
@@ -265,18 +283,18 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 		}
 
 		if (curlyBracesError) {
-			displayService.errorLn("Issue with curly braces: " + properties);
+			errorService.addError(new Error(displayService.errorLn("Issue with curly braces: {}", properties)));
 			return null;
 		}
 
 		if ((lastIndexLeft == null && lastIndexRight == null) || (lastIndexLeft != null && lastIndexRight != null && lastIndexLeft < lastIndexRegular && lastIndexRegular <= lastIndexRight)) {
 			// ok
-			System.out.println("LIST: " + list);
+			displayService.infoLn("List of items: " + list);
 			transporter.items = list;
 
 			return transporter;
 		} else {
-			displayService.errorLn("Issue with curly braces: " + properties);
+			errorService.addError(new Error(displayService.errorLn("Issue with curly braces: {}", properties)));
 			return null;
 		}
 	}

@@ -13,11 +13,11 @@
 # =================================================	#
 
 #allowed_arguments_order={option,arguments_number,argument}
-#option=!{--help,-h} ORDER={option,arguments_number,argument}={one,two,three}
-#option={--debug,-d}={enable,disable}
-#option={--print-to,-pt}={Logs.txt,#}
-#arguments_number=1
-#argument=sudokufile.txt
+option=!{--help,-h}={} ORDER={option,arguments_number,argument}={one,two,three}
+option={--debug,-d}={enable,disable}
+option={--print-to,-pt}={Logs.txt,#}
 #option={--print-to,-pt,-prTO}={Logs.txt,#}
-
-option=!{--help,-h}=!{}
+arguments_number=1
+argument=sudokufile.txt
+argument=#
+argument=1111111111
