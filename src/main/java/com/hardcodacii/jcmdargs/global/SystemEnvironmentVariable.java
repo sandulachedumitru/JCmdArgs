@@ -55,6 +55,8 @@ public class SystemEnvironmentVariable {
 	public String LOG_ERROR_PREFIX;
 	@Value("${cmdline.log.info.prefix}")
 	public String LOG_INFO_PREFIX;
+	@Value("${cmdline.log.warning.prefix}")
+	public String LOG_WARNING_PREFIX;
 	@Value("${cmdline.log.section.delimiter.minus}")
 	public String LOG_SECTION_DELIMITER_MINUS;
 	@Value("${cmdline.log.section.delimiter.equal}")

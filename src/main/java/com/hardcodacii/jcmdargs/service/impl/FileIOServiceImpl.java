@@ -28,17 +28,17 @@ public class FileIOServiceImpl implements FileIOService {
 		var filePath = Paths.get(path);
 		var filePathStr = filePath.getFileName().toString();
 		if (Files.exists(filePath, LinkOption.NOFOLLOW_LINKS)) {
-			displayService.showln(logProcessorService.processLogs("The file/directory '{}' exists.", filePathStr));
+			displayService.println(logProcessorService.processLogs("The file/directory '{}' exists.", filePathStr));
 			// check whether it is a file or a directory
 			if (Files.isDirectory(filePath, LinkOption.NOFOLLOW_LINKS)) {
-				displayService.showlnErr(logProcessorService.processLogs("'{}' is a directory. Need a file.", filePathStr));
+				displayService.printlnErr(logProcessorService.processLogs("'{}' is a directory. Need a file.", filePathStr));
 				//if directory then stop app
 			} else {
-				displayService.showln(logProcessorService.processLogs("'{}' is a file.", filePathStr));
+				displayService.println(logProcessorService.processLogs("'{}' is a file.", filePathStr));
 				fileExists = true;
 			}
 		} else
-			displayService.showlnErr(logProcessorService.processLogs("The file '{}' does not exist.", filePathStr));
+			displayService.printlnErr(logProcessorService.processLogs("The file '{}' does not exist.", filePathStr));
 
 		return fileExists;
 	}
@@ -49,7 +49,7 @@ public class FileIOServiceImpl implements FileIOService {
 		try {
 			return fileExists(resource.getFile().getPath());
 		} catch (IOException e) {
-			displayService.showln(logProcessorService.processLogs("There was an exception when trying to access the file '{}'.", path));
+			displayService.println(logProcessorService.processLogs("There was an exception when trying to access the file '{}'.", path));
 			e.printStackTrace();
 			return false;
 		}
@@ -63,10 +63,10 @@ public class FileIOServiceImpl implements FileIOService {
 		try {
 			Files.writeString(filePath, path, StandardOpenOption.CREATE);
 			isSuccessfulWriting = true;
-			displayService.showln("Successful write to file.");
+			displayService.println("Successful write to file.");
 		} catch (IOException ioe) {
-			displayService.showlnErr("Failed to write to file.");
-			displayService.show(ioe);
+			displayService.printlnErr("Failed to write to file.");
+			displayService.print(ioe);
 		}
 
 		return isSuccessfulWriting;
@@ -78,7 +78,7 @@ public class FileIOServiceImpl implements FileIOService {
 		try {
 			return writeStringToFile(resource.getFile().getPath());
 		} catch (IOException e) {
-			displayService.showln(logProcessorService.processLogs("There was an exception when trying to access the file '{}'.", path));
+			displayService.println(logProcessorService.processLogs("There was an exception when trying to access the file '{}'.", path));
 			e.printStackTrace();
 			return false;
 		}
@@ -91,10 +91,10 @@ public class FileIOServiceImpl implements FileIOService {
 
 		try {
 			content = Files.readString(filePath);
-			displayService.showln("Successful read from file.");
+			displayService.println("Successful read from file.");
 		} catch (IOException ioe) {
-			displayService.showlnErr("Failed to read from file.");
-			displayService.show(ioe);
+			displayService.printlnErr("Failed to read from file.");
+			displayService.print(ioe);
 		}
 
 		return content;
@@ -106,7 +106,7 @@ public class FileIOServiceImpl implements FileIOService {
 		try {
 			return readStringFromFile(resource.getFile().getPath());
 		} catch (IOException e) {
-			displayService.showln(logProcessorService.processLogs("There was an exception when trying to access the file '{}'.", path));
+			displayService.println(logProcessorService.processLogs("There was an exception when trying to access the file '{}'.", path));
 			e.printStackTrace();
 			return "";
 		}

@@ -78,6 +78,8 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 		}
 		System.out.println();
 
+		errorService.emptyErrorsList();
+
 		return Optional.empty();
 	}
 
@@ -90,14 +92,14 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 		var matcher = pattern.matcher(line);
 		int NUMBER_OF_GROUPS = 5 + 1;
 
-		displayService.showln(logProcessorService.processLogs("line: {}", line));
+		displayService.println(logProcessorService.processLogs("line: {}", line));
 		List<DefinitionParser> definitionList = new ArrayList<>();
 		while (matcher.find()) {
 			for (var i = 0; i <= matcher.groupCount(); i++) {
-				displayService.showln(logProcessorService.processLogs("\tARGUMENT DEFINITION: group[{}] --> {}", String.valueOf(i), matcher.group(i)));
+				displayService.println(logProcessorService.processLogs("\tARGUMENT DEFINITION: group[{}] --> {}", String.valueOf(i), matcher.group(i)));
 			}
 			if (matcher.groupCount() != NUMBER_OF_GROUPS - 1) {
-				displayService.showlnErr(logProcessorService.processLogs("The number of matching groups is not good. Expected {} but is actually {}", String.valueOf(NUMBER_OF_GROUPS), String.valueOf(matcher.groupCount())));
+				displayService.printlnErr(logProcessorService.processLogs("The number of matching groups is not good. Expected {} but is actually {}", String.valueOf(NUMBER_OF_GROUPS), String.valueOf(matcher.groupCount())));
 				return;
 			}
 
@@ -126,7 +128,7 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 				definitionParser.setProperties(definitionProperties);
 				definitionList.add(definitionParser);
 			} else {
-				displayService.showlnErr(logProcessorService.processLogs("The definitionParser type '{}' is unknown and will be ignored.", definitionProperties.getDefinitionType()));
+				displayService.printlnErr(logProcessorService.processLogs("The definitionParser type '{}' is unknown and will be ignored.", definitionProperties.getDefinitionType()));
 			}
 		}
 
@@ -148,14 +150,14 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 		if (parsedDefinitionsMap.size() == 0) return; // TODO log and errorService
 
 		for (var entry : parsedDefinitionsMap.entrySet()) {
-			displayService.showln(logProcessorService.processLogs("key: [{}]", entry.getKey().name()));
-			for (var defParser : entry.getValue()) {
-				displayService.showln(logProcessorService.processLogs("\tvalues: [{}]", defParser.toString()));
+			displayService.println(logProcessorService.processLogs("key: [{}]", entry.getKey().name()));
+			for (var defPropParser : entry.getValue()) {
+				displayService.println(logProcessorService.processLogs("\tvalues: [{}]", defPropParser.toString()));
 
-				if (defParser.getType() != null && defParser.getProperties() != null) {
-					if (defParser.getType() == DefinitionType.OPTION) {
-						if (defParser.getProperties() instanceof DefinitionPropertiesParserForOption) {
-							var defProp = (DefinitionPropertiesParserForOption) defParser.getProperties();
+				if (defPropParser.getType() != null && defPropParser.getProperties() != null) {
+					if (defPropParser.getType() == DefinitionType.OPTION) {
+						if (defPropParser.getProperties() instanceof DefinitionPropertiesParserForOption) {
+							var defProp = (DefinitionPropertiesParserForOption) defPropParser.getProperties();
 
 							var definition = new DefinitionOption();
 							definition.setType(DefinitionType.OPTION);
@@ -168,21 +170,21 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 							if (transporter != null) {
 								definition.setAllowedValues(transporter.items);
 								if (transporter.singleOption) {
-									displayService.showlnErr("Character ['!'] not allowed: " + defProp.getAllowedValues());
+									displayService.printlnErr("Character ['!'] not allowed: " + defProp.getAllowedValues());
 									errorService.addError(new Error("Character ['!'] not allowed" + defProp.getAllowedValues()));
 								}
-								definition.setSingleOption(transporter.singleOption);
+//								definition.setSingleOption(transporter.singleOption);
 							}
-							definitionsMap.put(defParser.getType(), definition);
+							definitionsMap.put(defPropParser.getType(), definition);
 						} else {
-							displayService.showlnErr("Definition with type OPTION must be of type: " + DefinitionPropertiesParserForOption.class.getName());
+							displayService.printlnErr("Definition with type OPTION must be of type: " + DefinitionPropertiesParserForOption.class.getName());
 							errorService.addError(new Error("Definition with type OPTION must be of type: " + DefinitionPropertiesParserForOption.class.getName()));
 						}
 					} else {
-						DefinitionPropertiesParser defProp = defParser.getProperties();
+						DefinitionPropertiesParser defProp = defPropParser.getProperties();
 
 						var definition = new DefinitionNonOption();
-						definition.setType(defParser.getType());
+						definition.setType(defPropParser.getType());
 						var transporter = tokenize(defProp.getDefinitionType());
 						if (transporter != null) {
 							definition.setPossibleValues(transporter.items);
@@ -191,7 +193,7 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 						if (transporter != null) {
 							definition.setPossibleValues(transporter.items);
 						}
-						definitionsMap.put(defParser.getType(), definition);
+						definitionsMap.put(defPropParser.getType(), definition);
 					}
 				}
 			}
@@ -265,7 +267,7 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 		}
 
 		if (curlyBracesError) {
-			displayService.showlnErr("Issue with curly braces: " + properties);
+			displayService.printlnErr("Issue with curly braces: " + properties);
 			return null;
 		}
 
@@ -276,7 +278,7 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 
 			return transporter;
 		} else {
-			displayService.showlnErr("Issue with curly braces: " + properties);
+			displayService.printlnErr("Issue with curly braces: " + properties);
 			return null;
 		}
 	}

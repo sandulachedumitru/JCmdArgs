@@ -11,6 +11,5 @@ import java.util.List;
 
 @Data
 public class DefinitionNonOption extends Definition {
-	private DefinitionType type; // ex: ARGUMENT
 	private List<String> possibleValues = new ArrayList<>(); // ex: ExampleFile.txt OR {ExampleFile.txt, #}
 }
