@@ -92,14 +92,14 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 		var matcher = pattern.matcher(line);
 		int NUMBER_OF_GROUPS = 5 + 1;
 
-		displayService.println(logProcessorService.processLogs("line: {}", line));
+		displayService.infoLn(logProcessorService.processLogs("line: {}", line));
 		List<DefinitionParser> definitionList = new ArrayList<>();
 		while (matcher.find()) {
 			for (var i = 0; i <= matcher.groupCount(); i++) {
-				displayService.println(logProcessorService.processLogs("\tARGUMENT DEFINITION: group[{}] --> {}", String.valueOf(i), matcher.group(i)));
+				displayService.infoLn(logProcessorService.processLogs("\tARGUMENT DEFINITION: group[{}] --> {}", String.valueOf(i), matcher.group(i)));
 			}
 			if (matcher.groupCount() != NUMBER_OF_GROUPS - 1) {
-				displayService.printlnErr(logProcessorService.processLogs("The number of matching groups is not good. Expected {} but is actually {}", String.valueOf(NUMBER_OF_GROUPS), String.valueOf(matcher.groupCount())));
+				displayService.errorLn(logProcessorService.processLogs("The number of matching groups is not good. Expected {} but is actually {}", String.valueOf(NUMBER_OF_GROUPS), String.valueOf(matcher.groupCount())));
 				return;
 			}
 
@@ -128,7 +128,7 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 				definitionParser.setProperties(definitionProperties);
 				definitionList.add(definitionParser);
 			} else {
-				displayService.printlnErr(logProcessorService.processLogs("The definitionParser type '{}' is unknown and will be ignored.", definitionProperties.getDefinitionType()));
+				displayService.errorLn(logProcessorService.processLogs("The definitionParser type '{}' is unknown and will be ignored.", definitionProperties.getDefinitionType()));
 			}
 		}
 
@@ -150,9 +150,9 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 		if (parsedDefinitionsMap.size() == 0) return; // TODO log and errorService
 
 		for (var entry : parsedDefinitionsMap.entrySet()) {
-			displayService.println(logProcessorService.processLogs("key: [{}]", entry.getKey().name()));
+			displayService.infoLn(logProcessorService.processLogs("key: [{}]", entry.getKey().name()));
 			for (var defPropParser : entry.getValue()) {
-				displayService.println(logProcessorService.processLogs("\tvalues: [{}]", defPropParser.toString()));
+				displayService.infoLn(logProcessorService.processLogs("\tvalues: [{}]", defPropParser.toString()));
 
 				if (defPropParser.getType() != null && defPropParser.getProperties() != null) {
 					if (defPropParser.getType() == DefinitionType.OPTION) {
@@ -170,14 +170,14 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 							if (transporter != null) {
 								definition.setAllowedValues(transporter.items);
 								if (transporter.singleOption) {
-									displayService.printlnErr("Character ['!'] not allowed: " + defProp.getAllowedValues());
+									displayService.errorLn("Character ['!'] not allowed: " + defProp.getAllowedValues());
 									errorService.addError(new Error("Character ['!'] not allowed" + defProp.getAllowedValues()));
 								}
 //								definition.setSingleOption(transporter.singleOption);
 							}
 							definitionsMap.put(defPropParser.getType(), definition);
 						} else {
-							displayService.printlnErr("Definition with type OPTION must be of type: " + DefinitionPropertiesParserForOption.class.getName());
+							displayService.errorLn("Definition with type OPTION must be of type: " + DefinitionPropertiesParserForOption.class.getName());
 							errorService.addError(new Error("Definition with type OPTION must be of type: " + DefinitionPropertiesParserForOption.class.getName()));
 						}
 					} else {
@@ -267,7 +267,7 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 		}
 
 		if (curlyBracesError) {
-			displayService.printlnErr("Issue with curly braces: " + properties);
+			displayService.errorLn("Issue with curly braces: " + properties);
 			return null;
 		}
 
@@ -278,7 +278,7 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 
 			return transporter;
 		} else {
-			displayService.printlnErr("Issue with curly braces: " + properties);
+			displayService.errorLn("Issue with curly braces: " + properties);
 			return null;
 		}
 	}

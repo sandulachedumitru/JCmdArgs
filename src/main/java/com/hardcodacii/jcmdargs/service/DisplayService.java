@@ -5,8 +5,10 @@ package com.hardcodacii.jcmdargs.service;
  */
 
 public interface DisplayService {
-	void println(Object obj);
-	void print(Object obj);
-	void printlnErr(Object obj);
-	void printErr(Object obj);
+	void infoLn(Object log);
+	void info(Object log);
+	void errorLn(Object log);
+	void error(Object log);
+	void warningLn(Object log);
+	void warning(Object log);
 }
