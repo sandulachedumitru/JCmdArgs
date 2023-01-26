@@ -4,7 +4,6 @@ import com.hardcodacii.jcmdargs.global.SystemEnvironmentVariable;
 import com.hardcodacii.jcmdargs.service.CmdLineDefinitionParserService;
 import com.hardcodacii.jcmdargs.service.DisplayService;
 import com.hardcodacii.jcmdargs.service.FileIOService;
-import com.hardcodacii.jcmdargs.service.LogProcessorService;
 import com.hardcodacii.jcmdargs.service.model.*;
 import com.hardcodacii.jcmdargs.service.model.Error;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +22,6 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 	private final FileIOService fileIOService;
 	private final SystemEnvironmentVariable environmentService;
 	private final DisplayService displayService;
-	private final LogProcessorService logProcessorService;
 	private final ErrorServiceImpl errorService;
 
 	private final Map<DefinitionType, List<DefinitionParser>> parsedDefinitionsMap = new HashMap<>();
@@ -92,14 +90,14 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 		var matcher = pattern.matcher(line);
 		int NUMBER_OF_GROUPS = 5 + 1;
 
-		displayService.infoLn(logProcessorService.processLogs("line: {}", line));
+		displayService.infoLn("line: {}", line);
 		List<DefinitionParser> definitionList = new ArrayList<>();
 		while (matcher.find()) {
 			for (var i = 0; i <= matcher.groupCount(); i++) {
-				displayService.infoLn(logProcessorService.processLogs("\tARGUMENT DEFINITION: group[{}] --> {}", String.valueOf(i), matcher.group(i)));
+				displayService.infoLn("\tARGUMENT DEFINITION: group[{}] --> {}", String.valueOf(i), matcher.group(i));
 			}
 			if (matcher.groupCount() != NUMBER_OF_GROUPS - 1) {
-				displayService.errorLn(logProcessorService.processLogs("The number of matching groups is not good. Expected {} but is actually {}", String.valueOf(NUMBER_OF_GROUPS), String.valueOf(matcher.groupCount())));
+				displayService.errorLn("The number of matching groups is not good. Expected {} but is actually {}", String.valueOf(NUMBER_OF_GROUPS), String.valueOf(matcher.groupCount()));
 				return;
 			}
 
@@ -128,7 +126,7 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 				definitionParser.setProperties(definitionProperties);
 				definitionList.add(definitionParser);
 			} else {
-				displayService.errorLn(logProcessorService.processLogs("The definitionParser type '{}' is unknown and will be ignored.", definitionProperties.getDefinitionType()));
+				displayService.errorLn("The definitionParser type '{}' is unknown and will be ignored.", definitionProperties.getDefinitionType());
 			}
 		}
 
@@ -150,9 +148,9 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 		if (parsedDefinitionsMap.size() == 0) return; // TODO log and errorService
 
 		for (var entry : parsedDefinitionsMap.entrySet()) {
-			displayService.infoLn(logProcessorService.processLogs("key: [{}]", entry.getKey().name()));
+			displayService.infoLn("key: [{}]", entry.getKey().name());
 			for (var defPropParser : entry.getValue()) {
-				displayService.infoLn(logProcessorService.processLogs("\tvalues: [{}]", defPropParser.toString()));
+				displayService.infoLn("\tvalues: [{}]", defPropParser.toString());
 
 				if (defPropParser.getType() != null && defPropParser.getProperties() != null) {
 					if (defPropParser.getType() == DefinitionType.OPTION) {
