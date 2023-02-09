@@ -1,0 +1,51 @@
+cmdline:
+  file:
+    path-to-resources: /cmd-line/
+    path-to-help-files: /help-files/ # src/main/resources/cmd-line/help-files
+    definition-file: cmdline-definition.jca
+    default-input-file: default-input-file.txt
+    default-output-file: default-output-file.txt
+  properties:
+    global:
+      app-name: CmdLineArgs
+  regex:
+    definition:
+      line:
+        argument-definition-simple: (\S+)=(\S+)
+        argument-definition-with-values: (\S+)=(\S+)=(\S+)
+        argument-definition-mix: (\S+)=(\S+)=(\S+)|(\S+)=(\S+)
+    option:
+      name: # OR ^(--([a-zA-Z]+[^0-9\\W]))(=(\\w+))?$
+        long: ^(--([a-zA-Z]+[^0-9\W]))(=((\w+)(\.([a-zA-Z0-9]+))?))?$
+        short: ^(--([a-zA-Z]+[^0-9\W]))(=((\w+)(\.([a-zA-Z0-9]+))?))?$
+    parameter: # OR ^([a-zA-Z0-9]+)(\\.([a-zA-Z0-9]+))?$
+      file: ^(\w+)(\.([a-zA-Z0-9]+))?$
+      anything: ^(\w+)?$
+  log:
+    paragraph:
+      crlf: \r\n
+      tab: \t
+    error:
+      prefix: "[ERROR]\t"
+    info:
+      prefix: "[INFO]\t"
+    warning:
+      prefix: "[WARNING]\t"
+    section:
+      delimiter:
+        minus: "------------------------------------------------------------------"
+        equal: "=================================================================="
+  tokenize-argument-definition:
+    global:
+      empty-text: ""
+    special-character:
+      square-bracket-left: "["
+      square-bracket-right: "]"
+      curly-braces-left: "{"
+      curly-braces-right: "}"
+      equal: "="
+      comma: ","
+      option-prefix-short: "-"
+      option-prefix-long: "--"
+      sharp: "#"
+      single-option-allowed: "!"
