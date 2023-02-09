@@ -28,7 +28,7 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 	private final Map<DefinitionType, List<Definition>> definitionsMap = new HashMap<>();
 
 	@Override
-	public Optional<Map<DefinitionType, DefinitionOption>> parseDefinitionFile() {
+	public Optional<Map<DefinitionType, List<Definition>>> parseDefinitionFile() {
 		displayService.emptyLine();
 
 		// CHECKING FILE
@@ -107,7 +107,7 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 		errorService.emptyErrorsList();
 
 		// RETURN
-		return Optional.empty();
+		return errorService.getErrors().size() == 0 ? Optional.of(definitionsMap) : Optional.empty();
 	}
 
 	private void displayErrors() {
@@ -342,8 +342,22 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 		private boolean singleOption = false;
 	}
 
-	private List<String> applyRules(List<String> list) {
-		// emty list
-		return null;
+	private void applyRules() {
+		// CHECK IF allowed_arguments_order DEFINITION EXISTS. IS mandatory
+
+		// CHECK IF DEFINITIONS FROM allowed_arguments_order LIST HAVE INSTANCES. The list size != 0
+
+		// CHECK IF arguments_number EXISTS
+
+		// CHECK THE NUMBERS OF ARGUMENTS
+
+		// CHECK IF THE ARGUMENTS HAVE DUPLICATES
+
+		// CHECK IF THE OPTIONS HAVE DUPLICATES
+
+		// CHECK IF THE OPTIONS HAVE DUPLICATES
+
+		// CHECK IF THE COMMANDS HAVE DUPLICATES
+
 	}
 }
