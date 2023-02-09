@@ -82,6 +82,7 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 		displayService.infoLn("=============================================");
 		if (parsedDefinitionsMap.size() == 0) {
 			errorService.addError(new Error(displayService.errorLn("No definition found in file [{}]", file)));
+			displayService.emptyLine();
 			displayErrors();
 			return Optional.empty();
 		}
