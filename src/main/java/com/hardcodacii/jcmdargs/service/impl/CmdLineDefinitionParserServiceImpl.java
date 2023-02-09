@@ -29,58 +29,93 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 
 	@Override
 	public Optional<Map<DefinitionType, DefinitionOption>> parseDefinitionFile() {
+		displayService.emptyLine();
+
+		// CHECKING FILE
+		displayService.infoLn("CHECKING FILE");
+		displayService.infoLn("============-");
 		var file = environmentService.PATH_TO_RESOURCES + environmentService.FILE_DEFINITION;
 		var fileExists = fileIOService.fileExistsInResources(file);
+		displayService.emptyLine();
 
-		if (fileExists) {
-			String fileContent = fileIOService.readStringFromFileInResources(file);
-
-			System.out.println("\nLINE PROCESSOR");
-			System.out.println("==============");
-			var scanner = new Scanner(fileContent);
-			while (scanner.hasNextLine()) {
-				var line = scanner.nextLine();
-				lineProcessor(line.trim());
-			}
-			System.out.println();
-			scanner.close();
+		// RULE: CHECK IF FILE EXISTS
+		displayService.infoLn("RULE --> CHECK IF FILE EXISTS");
+		displayService.infoLn("=============================");
+		if (!fileExists) {
+			errorService.addError(new Error(displayService.errorLn("File [{}] doesn't existS.", file)));
+			displayErrors();
+			return Optional.empty();
 		}
+		displayService.infoLn("File [{}] existS.", file);
+		displayService.emptyLine();
 
-		System.out.println("\nPARSED DEFINITION MAP");
-		System.out.println("=====================");
+		// READING FROM FILE
+		displayService.infoLn("READING FROM FILE");
+		displayService.infoLn("=================");
+		String fileContent = fileIOService.readStringFromFileInResources(file);
+		displayService.emptyLine();
+
+		// LINE PROCESSOR
+		displayService.infoLn("LINE PROCESSOR");
+		displayService.infoLn("==============");
+		var scanner = new Scanner(fileContent);
+		while (scanner.hasNextLine()) {
+			var line = scanner.nextLine();
+			lineProcessor(line.trim());
+		}
+		scanner.close();
+		displayService.emptyLine();
+
+		// PARSED DEFINITION MAP
+		displayService.infoLn("PARSED DEFINITION MAP");
+		displayService.infoLn("=====================");
 		for (var entry : parsedDefinitionsMap.entrySet()) {
-			System.out.println("key: " + entry.getKey());
+			displayService.infoLn("key: " + entry.getKey());
 			for (var arg : entry.getValue()) {
-				System.out.println("\tvalue: " + arg);
+				displayService.infoLn("\tvalue: " + arg);
 			}
 		}
-		System.out.println();
+		displayService.emptyLine();
 
-		// ??
-		if (parsedDefinitionsMap.size() == 0) return Optional.empty();
+		// RULE: CHECK IF DEFINITIONS HAVE BEEN FOUND
+		displayService.infoLn("RULE --> CHECK IF DEFINITIONS HAVE BEEN FOUND");
+		displayService.infoLn("=============================================");
+		if (parsedDefinitionsMap.size() == 0) {
+			errorService.addError(new Error(displayService.errorLn("No definition found in file [{}]", file)));
+			displayErrors();
+			return Optional.empty();
+		}
+		displayService.infoLn("Definition found in the [{}] file", file);
+		displayService.emptyLine();
 
+		// MAPPING OF DEFINITIONS
 		parseDefinition();
-
-		System.out.println("\nDEFINITIONS MAP");
-		System.out.println("===============");
+		displayService.emptyLine();
+		displayService.infoLn("DEFINITIONS MAP");
+		displayService.infoLn("===============");
 		for (var entry : definitionsMap.entrySet()) {
-			System.out.println("key: " + entry.getKey());
+			displayService.infoLn("key: " + entry.getKey());
 			for (var arg : entry.getValue()) {
-				System.out.println("\tvalue: " + arg);
+				displayService.infoLn("\tvalue: " + arg);
 			}
 		}
-		System.out.println();
+		displayService.emptyLine();
 
-		System.out.println("\nERROR LIST");
-		System.out.println("==========");
-		for (var err : errorService.getErrors()) {
-			System.out.println("\t" + err.getMessage());
-		}
-		System.out.println();
-
+		// DISPLAY ERRORS AND EMPTY ERRORS STACK
+		displayErrors();
 		errorService.emptyErrorsList();
 
+		// RETURN
 		return Optional.empty();
+	}
+
+	private void displayErrors() {
+		displayService.infoLn("ERROR LIST");
+		displayService.infoLn("==========");
+		for (var err : errorService.getErrors()) {
+			displayService.infoLn("\t" + err.getMessage());
+		}
+		displayService.emptyLine();
 	}
 
 	private void lineProcessor(String line) {
@@ -94,12 +129,13 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 
 		displayService.infoLn("line: {}", line);
 		List<DefinitionParser> definitionList = new ArrayList<>();
+		var isMatched = false;
 		while (matcher.find()) {
 			for (var i = 0; i <= matcher.groupCount(); i++) {
 				displayService.infoLn("\tARGUMENT DEFINITION: group[{}] --> {}", String.valueOf(i), matcher.group(i));
 			}
 			if (matcher.groupCount() != NUMBER_OF_GROUPS - 1) {
-				displayService.errorLn("The number of matching groups is not good. Expected {} but is actually {}", String.valueOf(NUMBER_OF_GROUPS), String.valueOf(matcher.groupCount()));
+				errorService.addError(new Error(displayService.errorLn("The number of matching groups is not good. Expected [{}] but is actually [{}]", String.valueOf(NUMBER_OF_GROUPS), String.valueOf(matcher.groupCount()))));
 				return;
 			}
 
@@ -124,12 +160,16 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 			var definitionParser = new DefinitionParser();
 			var type = DefinitionType.getDefinitionTypeByCode(definitionProperties.getDefinitionType());
 			if (type != null) {
+				isMatched = true;
 				definitionParser.setType(type);
 				definitionParser.setProperties(definitionProperties);
 				definitionList.add(definitionParser);
 			} else {
-				errorService.addError(new Error(displayService.errorLn("The definitionParser type '{}' is unknown.", definitionProperties.getDefinitionType())));
+				errorService.addError(new Error(displayService.errorLn("The definitionParser type [{}] is unknown.", definitionProperties.getDefinitionType())));
 			}
+		}
+		if (!isMatched) {
+			errorService.addError(new Error(displayService.errorLn("The line [{}] could not be processed.", line)));
 		}
 
 		// map argument List to Map
@@ -178,7 +218,7 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 							}
 							definitionList.add(definition);
 						} else {
-							var errMsg = displayService.errorLn("Definition with type OPTION must be of type: {}. Found type: {}. You have option={opt1, opt2, ..}. Try option={opt1, opt2, ..}={}",
+							var errMsg = displayService.errorLn("Definition with type OPTION must be of type: [{}]. Found type: [{}]. You have option={opt1, opt2, ..}. Try option={opt1, opt2, ..}={}",
 									DefinitionPropertiesParserForOption.class.getSimpleName(),
 									defPropParser.getProperties().getClass().getSimpleName());
 							errorService.addError(new Error(errMsg));
@@ -188,11 +228,7 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 
 						var definition = new DefinitionNonOption();
 						definition.setType(defPropParser.getType());
-						var transporter = tokenize(defProp.getDefinitionType());
-						if (transporter != null) {
-							definition.setPossibleValues(transporter.items);
-						}
-						transporter = tokenize((defProp.getAllowedValues()));
+						var transporter = tokenize((defProp.getAllowedValues()));
 						if (transporter != null) {
 							definition.setPossibleValues(transporter.items);
 						}
@@ -283,18 +319,19 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 		}
 
 		if (curlyBracesError) {
-			errorService.addError(new Error(displayService.errorLn("Issue with curly braces: {}", properties)));
+			errorService.addError(new Error(displayService.errorLn("Issue with curly braces: [{}]", properties)));
 			return null;
 		}
 
 		if ((lastIndexLeft == null && lastIndexRight == null) || (lastIndexLeft != null && lastIndexRight != null && lastIndexLeft < lastIndexRegular && lastIndexRegular <= lastIndexRight)) {
 			// ok
+			if (sb.length() != 0) list.add(sb.toString());
 			displayService.infoLn("List of items: " + list);
 			transporter.items = list;
 
 			return transporter;
 		} else {
-			errorService.addError(new Error(displayService.errorLn("Issue with curly braces: {}", properties)));
+			errorService.addError(new Error(displayService.errorLn("Issue with curly braces: [{}]", properties)));
 			return null;
 		}
 	}

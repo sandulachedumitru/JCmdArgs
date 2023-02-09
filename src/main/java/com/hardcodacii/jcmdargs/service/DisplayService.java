@@ -5,6 +5,7 @@ package com.hardcodacii.jcmdargs.service;
  */
 
 public interface DisplayService {
+	void emptyLine();
 	String infoLn(Object logObj, Object... args);
 	String info(Object logObj, Object... args);
 	String errorLn(Object logObj, Object... args);

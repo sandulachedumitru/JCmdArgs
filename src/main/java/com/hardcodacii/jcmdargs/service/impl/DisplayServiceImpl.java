@@ -20,6 +20,11 @@ public class DisplayServiceImpl implements DisplayService {
 	private boolean isNewLine = true;
 
 	@Override
+	public void emptyLine() {
+		System.out.println();
+	}
+
+	@Override
 	public String infoLn(Object infoLog, Object... args) {
 		return printLn(INFO(), infoLog, args);
 	}

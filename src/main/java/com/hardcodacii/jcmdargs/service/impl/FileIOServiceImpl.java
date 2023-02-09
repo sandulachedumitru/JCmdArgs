@@ -1,7 +1,9 @@
 package com.hardcodacii.jcmdargs.service.impl;
 
 import com.hardcodacii.jcmdargs.service.DisplayService;
+import com.hardcodacii.jcmdargs.service.ErrorService;
 import com.hardcodacii.jcmdargs.service.FileIOService;
+import com.hardcodacii.jcmdargs.service.model.Error;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -18,6 +20,7 @@ import java.nio.file.*;
 @RequiredArgsConstructor
 public class FileIOServiceImpl implements FileIOService {
 	private final DisplayService displayService;
+	private final ErrorService errorService;
 
 	@Override
 	public boolean fileExists(String path) {
@@ -26,17 +29,17 @@ public class FileIOServiceImpl implements FileIOService {
 		var filePath = Paths.get(path);
 		var filePathStr = filePath.getFileName().toString();
 		if (Files.exists(filePath, LinkOption.NOFOLLOW_LINKS)) {
-			displayService.infoLn("The file/directory '{}' exists.", filePathStr);
+			displayService.infoLn("The file/directory [{}] exists.", filePathStr);
 			// check whether it is a file or a directory
 			if (Files.isDirectory(filePath, LinkOption.NOFOLLOW_LINKS)) {
-				displayService.errorLn("'{}' is a directory. Need a file.", filePathStr);
+				errorService.addError(new Error(displayService.errorLn("[{}] is a directory. Need a file.", filePathStr)));
 				//if directory then stop app
 			} else {
-				displayService.infoLn("'{}' is a file.", filePathStr);
+				displayService.infoLn("[{}] is a file.", filePathStr);
 				fileExists = true;
 			}
 		} else
-			displayService.errorLn("The file '{}' does not exist.", filePathStr);
+			errorService.addError(new Error(displayService.errorLn("The file [{}] does not exist.", filePathStr)));
 
 		return fileExists;
 	}
@@ -47,7 +50,7 @@ public class FileIOServiceImpl implements FileIOService {
 		try {
 			return fileExists(resource.getFile().getPath());
 		} catch (IOException e) {
-			displayService.infoLn("There was an exception when trying to access the file '{}'.", path);
+			errorService.addError(new Error(displayService.errorLn("There was an exception when trying to access the file [{}].", path)));
 			e.printStackTrace();
 			return false;
 		}
@@ -61,9 +64,9 @@ public class FileIOServiceImpl implements FileIOService {
 		try {
 			Files.writeString(filePath, path, StandardOpenOption.CREATE);
 			isSuccessfulWriting = true;
-			displayService.infoLn("Successful write to file.");
+			displayService.infoLn("Successful write to file [{}].", filePath);
 		} catch (IOException ioe) {
-			displayService.errorLn("Failed to write to file.");
+			errorService.addError(new Error(displayService.errorLn("Failed to write to file [{}].", filePath)));
 			displayService.info(ioe);
 		}
 
@@ -76,7 +79,7 @@ public class FileIOServiceImpl implements FileIOService {
 		try {
 			return writeStringToFile(resource.getFile().getPath());
 		} catch (IOException e) {
-			displayService.infoLn("There was an exception when trying to access the file '{}'.", path);
+			errorService.addError(new Error(displayService.errorLn("There was an exception when trying to access the file [{}].", path)));
 			e.printStackTrace();
 			return false;
 		}
@@ -89,9 +92,9 @@ public class FileIOServiceImpl implements FileIOService {
 
 		try {
 			content = Files.readString(filePath);
-			displayService.infoLn("Successful read from file.");
+			displayService.infoLn("Successful read from file [{}].", filePath);
 		} catch (IOException ioe) {
-			displayService.errorLn("Failed to read from file.");
+			errorService.addError(new Error(displayService.errorLn("Failed to read to file [{}].", filePath)));
 			displayService.info(ioe);
 		}
 
@@ -104,7 +107,7 @@ public class FileIOServiceImpl implements FileIOService {
 		try {
 			return readStringFromFile(resource.getFile().getPath());
 		} catch (IOException e) {
-			displayService.infoLn("There was an exception when trying to access the file '{}'.", path);
+			errorService.addError(new Error(displayService.errorLn("There was an exception when trying to access the file [{}].", path)));
 			e.printStackTrace();
 			return "";
 		}

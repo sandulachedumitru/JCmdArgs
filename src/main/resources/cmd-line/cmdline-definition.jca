@@ -1,7 +1,7 @@
 # GENERAL FORM
 # ============
 # allowed_arguments_order={option, command, arguments_number, argument}
-# option=[[!]{[-]-<optionLong>,-<optionShort>}[={}]]
+# option=[[!]{[-]-<optionLong>,-<optionShort>}={<list of allowed values; the list could be empty>}]
 # command=[<command>]
 # argument=[<argument>]
 # arguments_number=[<number>]
@@ -13,7 +13,7 @@
 # =================================================	#
 
 #allowed_arguments_order={option,arguments_number,argument}
-option=!{--help,-h}={} ORDER={option,arguments_number,argument}={one,two,three}
+option=!{--help,-h}={} ORDER={option,arguments_number,argument}={one,two,three} option={--print-to,-pt,-prTO}={Logs.txt,#}
 option={--debug,-d}={enable,disable}
 option={--print-to,-pt}={Logs.txt,#}
 #option={--print-to,-pt,-prTO}={Logs.txt,#}
@@ -21,3 +21,5 @@ arguments_number=1
 argument=sudokufile.txt
 argument=#
 argument=1111111111
+argument={Logs.txt,#}
+argument=
