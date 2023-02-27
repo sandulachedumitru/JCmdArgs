@@ -13,7 +13,7 @@
 # =================================================	#
 
 #allowed_arguments_order={option,arguments_number,argument}
-#allowed_arguments_order={option,arguments_number,argument}
+allowed_arguments_order={option,arguments_number,argument,argument,argumentargumentargument,argumentargumentargument}
 
 #option=!{--help,-h}={} ORDER={option,arguments_number,argument}={one,two,three} option={--print-to,-pt,-prTO}={Logs.txt,#}
 option={--debug,-d}={enable,disable}
