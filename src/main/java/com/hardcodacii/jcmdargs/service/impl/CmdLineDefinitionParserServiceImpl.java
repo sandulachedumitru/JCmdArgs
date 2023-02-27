@@ -102,9 +102,8 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 		}
 		displayService.emptyLine();
 
-		// DISPLAY ERRORS AND EMPTY ERRORS STACK
+		// DISPLAY ERRORS
 		displayErrors();
-		errorService.emptyErrorsList();
 
 		// RETURN
 		return errorService.getErrors().size() == 0 ? Optional.of(definitionsMap) : Optional.empty();
@@ -113,9 +112,11 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 	private void displayErrors() {
 		displayService.infoLn("ERROR LIST");
 		displayService.infoLn("==========");
-		for (var err : errorService.getErrors()) {
-			displayService.infoLn("\t" + err.getMessage());
-		}
+		if (errorService.getErrors().size() > 0) {
+			for (var err : errorService.getErrors()) {
+				displayService.infoLn("\t" + err.getMessage());
+			}
+		} else displayService.infoLn(("\tNo error detected"));
 		displayService.emptyLine();
 	}
 
@@ -340,28 +341,5 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 	private static class DefinitionPropertiesTokenizedTransporter {
 		private List<String> items;
 		private boolean singleOption = false;
-	}
-
-	private void applyRules() {
-
-		// allowed_arguments_order
-			// CHECK IF allowed_arguments_order DEFINITION EXISTS. IS mandatory
-			// CHECK IF allowed_arguments_order DEFINITION HAVE DUPLICATES
-			// CHECK IF DEFINITIONS FROM allowed_arguments_order LIST HAVE INSTANCES. The list size != 0
-			// CHECK IF LIST ITEMS FROM allowed_arguments_order HAVE DUPLICATES
-			// CHECK IF DEFINITION TYPES ARE CONTAINED IN  allowed_arguments_order ITEMS LIST
-
-		// arguments_number
-			// IF SPECIFIED IN allowed_arguments_order CHECK THE NUMBER OF allowed_arguments_order DEFINITIONS, MUST BE == 1
-			// CHECK THE NUMBER OF ARGUMENTS
-			// CHECK IF THE ARGUMENTS HAVE DUPLICATES
-
-		// option
-			// IF SPECIFIED IN allowed_arguments_order CHECK THE NUMBER OF option DEFINITION, MUST BE > 0
-			// CHECK IF THE OPTIONS HAVE DUPLICATES
-
-		// command
-			// IF SPECIFIED IN allowed_arguments_order CHECK THE NUMBER OF command DEFINITION, MUST BE == 1 ??
-				// CHECK IF THE COMMANDS HAVE DUPLICATES ??
 	}
 }
