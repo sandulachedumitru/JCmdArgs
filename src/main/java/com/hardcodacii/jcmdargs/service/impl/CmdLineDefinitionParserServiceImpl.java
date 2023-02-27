@@ -343,21 +343,25 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 	}
 
 	private void applyRules() {
-		// CHECK IF allowed_arguments_order DEFINITION EXISTS. IS mandatory
 
-		// CHECK IF DEFINITIONS FROM allowed_arguments_order LIST HAVE INSTANCES. The list size != 0
+		// allowed_arguments_order
+			// CHECK IF allowed_arguments_order DEFINITION EXISTS. IS mandatory
+			// CHECK IF allowed_arguments_order DEFINITION HAVE DUPLICATES
+			// CHECK IF DEFINITIONS FROM allowed_arguments_order LIST HAVE INSTANCES. The list size != 0
+			// CHECK IF LIST ITEMS FROM allowed_arguments_order HAVE DUPLICATES
+			// CHECK IF DEFINITION TYPES ARE CONTAINED IN  allowed_arguments_order ITEMS LIST
 
-		// CHECK IF arguments_number EXISTS
+		// arguments_number
+			// IF SPECIFIED IN allowed_arguments_order CHECK THE NUMBER OF allowed_arguments_order DEFINITIONS, MUST BE == 1
+			// CHECK THE NUMBER OF ARGUMENTS
+			// CHECK IF THE ARGUMENTS HAVE DUPLICATES
 
-		// CHECK THE NUMBERS OF ARGUMENTS
+		// option
+			// IF SPECIFIED IN allowed_arguments_order CHECK THE NUMBER OF option DEFINITION, MUST BE > 0
+			// CHECK IF THE OPTIONS HAVE DUPLICATES
 
-		// CHECK IF THE ARGUMENTS HAVE DUPLICATES
-
-		// CHECK IF THE OPTIONS HAVE DUPLICATES
-
-		// CHECK IF THE OPTIONS HAVE DUPLICATES
-
-		// CHECK IF THE COMMANDS HAVE DUPLICATES
-
+		// command
+			// IF SPECIFIED IN allowed_arguments_order CHECK THE NUMBER OF command DEFINITION, MUST BE == 1 ??
+				// CHECK IF THE COMMANDS HAVE DUPLICATES ??
 	}
 }
