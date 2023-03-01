@@ -13,5 +13,5 @@ import java.util.Optional;
 
 @FunctionalInterface
 public interface RuleService {
-	Optional<List<Error>> applyRules(Map<DefinitionType, List<Definition>> definitionsMap);
+	Optional<Boolean> applyRules(Map<DefinitionType, List<Definition>> definitionsMap);
 }

@@ -1,14 +1,16 @@
 package com.hardcodacii.jcmdargs.service.impl;
 
+import com.hardcodacii.jcmdargs.service.DisplayService;
+import com.hardcodacii.jcmdargs.service.ErrorService;
 import com.hardcodacii.jcmdargs.service.RuleService;
 import com.hardcodacii.jcmdargs.service.model.Definition;
 import com.hardcodacii.jcmdargs.service.model.DefinitionNonOption;
 import com.hardcodacii.jcmdargs.service.model.DefinitionType;
+import com.hardcodacii.jcmdargs.service.model.Error;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author Dumitru Săndulache (sandulachedumitru@hotmail.com)
@@ -17,9 +19,11 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class RuleServiceImpl implements RuleService {
+	private final DisplayService displayService;
+	private final ErrorService errorService;
 
 	@Override
-	public Optional<List<Error>> applyRules(Map<DefinitionType, List<Definition>> definitionsMap) {
+	public Optional<Boolean> applyRules(Map<DefinitionType, List<Definition>> definitionsMap) {
 		/*
 			allowed_arguments_order
 				- CHECK IF allowed_arguments_order DEFINITION EXISTS. IS mandatory
@@ -41,8 +45,10 @@ public class RuleServiceImpl implements RuleService {
 				- IF SPECIFIED IN allowed_arguments_order CHECK THE NUMBER OF command DEFINITION, MUST BE == 1 ??
 				- CHECK IF THE COMMANDS HAVE DUPLICATES ??
 		 */
-		AllowedArgumentsOrderRules(definitionsMap);
-		return Optional.empty();
+		if (AllowedArgumentsOrderRules(definitionsMap)) {
+			// TODO print status: OK, FAILED, etc
+			return Optional.of(true);
+		} else return Optional.of(false);
 	}
 
 	/*
@@ -53,10 +59,13 @@ public class RuleServiceImpl implements RuleService {
 		    - CHECK IF LIST ITEMS FROM allowed_arguments_order HAVE DUPLICATES
 			- CHECK IF ONLY DEFINITION TYPES ARE CONTAINED IN  allowed_arguments_order ITEMS LIST, AND NOT UNDEFINED TYPE
 	 */
-	private void AllowedArgumentsOrderRules(Map<DefinitionType, List<Definition>> definitionsMap) {
+	private boolean AllowedArgumentsOrderRules(Map<DefinitionType, List<Definition>> definitionsMap) {
+		var FAILED = false;
+		var SUCCESSFUL = true;
+
 		if (definitionsMap == null) {
-			// TODO display error
-			return;
+			errorService.addError(new Error(displayService.errorLn("Cannot apply rules for [{}] because map of definitions is null", "allowed_arguments_order")));
+			return FAILED;
 		}
 
 		var ALLOWED_ARGUMENTS_ORDER = DefinitionType.ALLOWED_ARGUMENTS_ORDER;
@@ -64,47 +73,41 @@ public class RuleServiceImpl implements RuleService {
 
 		// CHECK IF allowed_arguments_order DEFINITION EXISTS. IS mandatory
 		if (!definitionsMap.containsKey(ALLOWED_ARGUMENTS_ORDER)) {
-			// TODO dsplay error
-			System.out.println("---- no instance detected for: allowed_arguments_order which must be mandatory and only 1 instance ----");
-			return;
+			errorService.addError(new Error(displayService.errorLn("No instance detected for: [{}] which must be mandatory and only 1 instance per definitions file", "allowed_arguments_order")));
+			return FAILED;
 		}
 
 		// CHECK IF allowed_arguments_order DEFINITION HAVE DUPLICATES
 		if (definitionsMap.get(ALLOWED_ARGUMENTS_ORDER).size() != 1) {
-			// TODO dsplay error
-			System.out.println("---- duplicate detected for: allowed_arguments_order which must be mandatory and only 1 instance ----");
-			return;
+			errorService.addError(new Error(displayService.errorLn("Duplicate detected for: : [{}] which must be mandatory and only 1 instance per definitions file", "allowed_arguments_order")));
+			return FAILED;
 		}
 
 		// CHECK IF DEFINITIONS FROM allowed_arguments_order LIST HAVE INSTANCES. The list size != 0
 		var listOfInstances = definitionsMap.get(ALLOWED_ARGUMENTS_ORDER);
 		var definition = listOfInstances.get(ZERO);
 		if (!(definition instanceof DefinitionNonOption)) {
-			// TODO dsplay error
-			System.out.println("---- allowed_arguments_order must be of DefinitionNonOption type, but found {} ----");
-			return;
+			errorService.addError(new Error(displayService.errorLn("[{}] must be of [DefinitionNonOption] type, but found [{}]", "allowed_arguments_order", definition.getClass().getSimpleName())));
+			return FAILED;
 		}
 		var listOfPossibleValues = ((DefinitionNonOption) definition).getPossibleValues();
 		if (listOfPossibleValues.size() == ZERO) {
-			// TODO dsplay error
-			System.out.println("---- allowed_arguments_order definition type list doesn't contains any definition type ----");
-			return;
+			errorService.addError(new Error(displayService.errorLn("[{}] definition type list doesn't contains any definition type", "allowed_arguments_order")));
+			return FAILED;
 		}
 		
 		// CHECK IF LIST ITEMS FROM allowed_arguments_order HAVE DUPLICATES
 		var duplicates = haveDuplicates(listOfPossibleValues);
 		if (duplicates.size() != ZERO) {
-			// TODO dsplay error
-			System.out.println("---- allowed_arguments_order item list contains duplicates ----");
-			System.out.println(duplicates);
+			errorService.addError(new Error(displayService.errorLn("[{}] definition type list contains duplicates: [{}]", "allowed_arguments_order", duplicates)));
 		}
 		// CHECK IF ONLY DEFINITION TYPES ARE CONTAINED IN  allowed_arguments_order ITEMS LIST, AND NOT UNDEFINED TYPE
 		var unknownDefType = containsOnlyTypesDefined(listOfPossibleValues);
 		if (unknownDefType.size() != ZERO) {
-			// TODO dsplay error
-			System.out.println("---- allowed_arguments_order item list contains unknown or unallowed definition type ----");
-			System.out.println(unknownDefType);
+			errorService.addError(new Error(displayService.errorLn("[{}] definition type list contains unknown or not allowed definition type: [{}]", "allowed_arguments_order", unknownDefType)));
 		}
+
+		return errorService.getErrors().size() != 0 ? FAILED : SUCCESSFUL;
 	}
 
 	// return list of errors if found any

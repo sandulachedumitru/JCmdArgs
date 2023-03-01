@@ -12,4 +12,5 @@ public interface ErrorService {
 	void addError(Error error);
 	void emptyErrorsList();
 	List<Error> getErrors();
+	void displayErrors();
 }

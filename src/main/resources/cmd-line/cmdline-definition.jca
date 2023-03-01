@@ -12,8 +12,8 @@
 # The spaces inside of definitions are not allowed	#
 # =================================================	#
 
-#allowed_arguments_order={option,arguments_number,argument}
-allowed_arguments_order={option,arguments_number,argument,argument,argumentargumentargument,argumentargumentargument}
+allowed_arguments_order={option,arguments_number,argument}
+#allowed_arguments_order={option,arguments_number,argument,argument,argumentargumentargument,argumentargumentargument,allowed_arguments_order}
 
 #option=!{--help,-h}={} ORDER={option,arguments_number,argument}={one,two,three} option={--print-to,-pt,-prTO}={Logs.txt,#}
 option={--debug,-d}={enable,disable}

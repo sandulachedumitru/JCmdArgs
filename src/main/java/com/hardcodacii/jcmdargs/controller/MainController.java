@@ -19,8 +19,6 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class MainController {
-	private Map<DefinitionType, List<Definition>> definitionsMap;
-
 	private final CmdLineDefinitionParserService cmdLineDefinitionParserService;
 	private final RuleService ruleService;
 	private final ErrorService errorService;
@@ -29,14 +27,22 @@ public class MainController {
 		errorService.emptyErrorsList();
 
 		var definitionsMapOpt = cmdLineDefinitionParserService.parseDefinitionFile();
-		if (!definitionsMapOpt.isPresent()) throw new CmdArgsLineException("List of error: " + errorService);
+		if (!definitionsMapOpt.isPresent()) {
+			errorService.displayErrors();
+			throw new CmdArgsLineException("Parser service error");
+		}
 		var definitionsMap = definitionsMapOpt.get();
 
 		var rulesOfDefinitionOpt = ruleService.applyRules(definitionsMap);
-		if (!rulesOfDefinitionOpt.isPresent()) throw new CmdArgsLineException("List of error: " + errorService);
+		if (!rulesOfDefinitionOpt.isPresent()) {
+			errorService.displayErrors();
+			throw new CmdArgsLineException("Rules service error");
+		}
 		var rulesOfDefinition = rulesOfDefinitionOpt.get();
 
-
-		if (errorService.getErrors().size() > 0) throw new CmdArgsLineException("List of error: " + errorService);
+		if (errorService.getErrors().size() > 0) {
+			errorService.displayErrors();
+			throw new CmdArgsLineException("Defining command line failed with errors");
+		}
 	}
 }

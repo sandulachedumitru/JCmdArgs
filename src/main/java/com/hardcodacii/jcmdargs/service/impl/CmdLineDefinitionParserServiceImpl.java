@@ -43,7 +43,6 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 		displayService.infoLn("=============================");
 		if (!fileExists) {
 			errorService.addError(new Error(displayService.errorLn("File [{}] doesn't existS.", file)));
-			displayErrors();
 			return Optional.empty();
 		}
 		displayService.infoLn("File [{}] existS.", file);
@@ -83,7 +82,6 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 		if (parsedDefinitionsMap.size() == 0) {
 			errorService.addError(new Error(displayService.errorLn("No definition found in file [{}]", file)));
 			displayService.emptyLine();
-			displayErrors();
 			return Optional.empty();
 		}
 		displayService.infoLn("Definition found in the [{}] file", file);
@@ -102,22 +100,8 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 		}
 		displayService.emptyLine();
 
-		// DISPLAY ERRORS
-		displayErrors();
-
 		// RETURN
 		return errorService.getErrors().size() == 0 ? Optional.of(definitionsMap) : Optional.empty();
-	}
-
-	private void displayErrors() {
-		displayService.infoLn("ERROR LIST");
-		displayService.infoLn("==========");
-		if (errorService.getErrors().size() > 0) {
-			for (var err : errorService.getErrors()) {
-				displayService.infoLn("\t" + err.getMessage());
-			}
-		} else displayService.infoLn(("\tNo error detected"));
-		displayService.emptyLine();
 	}
 
 	private void lineProcessor(String line) {
@@ -216,7 +200,6 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 								if (transporter.singleOption) {
 									errorService.addError(new Error(displayService.errorLn("Character ['!'] not allowed: " + defProp.getAllowedValues())));
 								}
-//								definition.setSingleOption(transporter.singleOption);
 							}
 							definitionList.add(definition);
 						} else {
