@@ -77,8 +77,8 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 		displayService.emptyLine();
 
 		// RULE: CHECK IF DEFINITIONS HAVE BEEN FOUND
-		displayService.infoLn("RULE --> CHECK IF DEFINITIONS HAVE BEEN FOUND");
-		displayService.infoLn("=============================================");
+		displayService.infoLn("RULE --> CHECK IF DEFINITIONS FILE HAVE BEEN FOUND");
+		displayService.infoLn("==================================================");
 		if (parsedDefinitionsMap.size() == 0) {
 			errorService.addError(new Error(displayService.errorLn("No definition found in file [{}]", file)));
 			displayService.emptyLine();
