@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author Dumitru Săndulache (sandulachedumitru@hotmail.com)
@@ -62,7 +63,7 @@ public class RuleServiceImpl implements RuleService {
 		else displayService.infoLn("Applying [{}] rules: FAILED", ARGUMENTS_NUMBER.getArgumentCode());
 
 		if (argumentRules(definitionsMap)) displayService.infoLn("Applying [{}] rules: SUCCESSFUL", ARGUMENT.getArgumentCode());
-		else displayService.infoLn("Applying [{}] rules: SUCCESSFUL", ARGUMENT.getArgumentCode());
+		else displayService.infoLn("Applying [{}] rules: FAILED", ARGUMENT.getArgumentCode());
 
 		return errorService.getErrors().size() == ZERO ? Optional.of(true) : Optional.of(false);
 	}
@@ -145,11 +146,11 @@ public class RuleServiceImpl implements RuleService {
 	}
 
 	// return list of errors if found any
-	private static <T> Set<T> rule_HaveDuplicates(List<T> listOfPossibleValues) {
+	private static <T> Set<T> rule_HaveDuplicates(List<T> itemList) {
 		Set<T> duplicates = new HashSet<>();
 		Set<T> unique = new HashSet<>();
 
-		for (T t : listOfPossibleValues)
+		for (T t : itemList)
 			if (!unique.add(t)) duplicates.add(t);
 
 		return duplicates;
@@ -190,38 +191,52 @@ public class RuleServiceImpl implements RuleService {
 			return FAILED;
 		}
 
-		var numberOfArgumentsCountedInDefFile = definitionsMap.get(ARGUMENT).size();
-
 		// IF SPECIFIED IN allowed_arguments_order CHECK THE NUMBER OF arguments_number DEFINITIONS, MUST BE == 1
 		if (definitionsMap.containsKey(ARGUMENTS_NUMBER)) {
 			// CHECK IF arguments_number DEFINITION HAVE DUPLICATES
-			if (definitionsMap.get(ARGUMENTS_NUMBER).size() != 1) {
+			var argNumDefList = definitionsMap.get(ARGUMENTS_NUMBER);
+			if (argNumDefList.size() != 1) {
 				errorService.addError(new Error(displayService.errorLn("Duplicate detected for [{}] definition which must be only 1 instance per definitions file", ARGUMENTS_NUMBER.getArgumentCode())));
+				return FAILED;
+			}
+			var argNumDef = argNumDefList.get(ZERO);
+			if (! (argNumDef instanceof DefinitionNonOption)) {
+				errorService.addError(new Error(displayService.errorLn("[{}] must be of [DefinitionNonOption] type, but found [{}]", ARGUMENTS_NUMBER.getArgumentCode(), argNumDef.getClass().getSimpleName())));
+				return FAILED;
+			}
+			var possibleValuesListSize = ((DefinitionNonOption) argNumDefList.get(ZERO)).getPossibleValues();
+			if (possibleValuesListSize.size() != 1) {
+				errorService.addError(new Error(displayService.errorLn("[{}] definition can have one single value. Found: {}", ARGUMENTS_NUMBER.getArgumentCode(), possibleValuesListSize)));
 				return FAILED;
 			}
 		} else {
 			displayService.warningLn("No instance detected for [{}] definition. If want to defined it than there must be only 1 instance per definitions file", ARGUMENTS_NUMBER.getArgumentCode());
-			if (numberOfArgumentsCountedInDefFile != ZERO) {
-				var log = "[{}] will be set to [{}] which is the detected number of [{}] instances found in definitions file" +
-						", but for more control, it is recommended that " +
-						"in definition file, specify the allowed number of arguments (ex: [{}=N], where N is a positive integer)";
-				displayService.infoLn(log, ARGUMENTS_NUMBER.getArgumentCode(), numberOfArgumentsCountedInDefFile, ARGUMENT.getArgumentCode(), ARGUMENTS_NUMBER.getArgumentCode());
 
-				// create a bew DefinitionNonOption
-				DefinitionNonOption def = new DefinitionNonOption();
-				def.setType(ARGUMENTS_NUMBER);
-				def.getPossibleValues().add(String.valueOf(numberOfArgumentsCountedInDefFile));
+			var argsDef = definitionsMap.get(ARGUMENT);
+			var numberOfArgumentsCountedInDefFile = argsDef == null ? ZERO : argsDef.size();
 
-				// add definition to list
-				List<Definition> defList = new ArrayList<>();
-				defList.add(def);
-
-				// add arguments_number to definitionMap
-				definitionsMap.put(ARGUMENTS_NUMBER, defList);
-			}
+			var log = "[{}] will be set to [{}] which is the detected number of [{}] instances found in definitions file" +
+					", but for more control, it is recommended that " +
+					"in definition file, specify the allowed number of arguments (ex: [{}=N], where N is a positive integer)";
+			displayService.infoLn(log, ARGUMENTS_NUMBER.getArgumentCode(), numberOfArgumentsCountedInDefFile, ARGUMENT.getArgumentCode(), ARGUMENTS_NUMBER.getArgumentCode());
+			createArgumentNumberWithValue(definitionsMap, numberOfArgumentsCountedInDefFile);
 		}
 
 		return SUCCESSFUL;
+	}
+
+	private static void createArgumentNumberWithValue(Map<DefinitionType, List<Definition>> definitionsMap, int value) {
+		// create a bew DefinitionNonOption
+		DefinitionNonOption def = new DefinitionNonOption();
+		def.setType(ARGUMENTS_NUMBER);
+		def.getPossibleValues().add(String.valueOf(value));
+
+		// add definition to list
+		List<Definition> defList = new ArrayList<>();
+		defList.add(def);
+
+		// add arguments_number to definitionMap
+		definitionsMap.put(ARGUMENTS_NUMBER, defList);
 	}
 
 	/*
@@ -231,20 +246,19 @@ public class RuleServiceImpl implements RuleService {
 	 */
 	private boolean argumentRules(Map<DefinitionType, List<Definition>> definitionsMap) {
 		if (definitionsMap == null) {
-			errorService.addError(new Error(displayService.errorLn("Cannot apply rules for [{}] definition because map of definitions is null", ARGUMENTS_NUMBER.getArgumentCode())));
+			errorService.addError(new Error(displayService.errorLn("Cannot apply rules for [{}] defNum because map of definitions is null", ARGUMENT.getArgumentCode())));
 			return FAILED;
 		}
 
-		var numberOfArgumentsCountedInDefFile = definitionsMap.get(ARGUMENT).size();
+		if (! definitionsMap.containsKey(ARGUMENT)) {
+			displayService.warning("No instances detected for [{}]", ARGUMENT.getArgumentCode());
+			return SUCCESSFUL;
+		}
 
 		// CHECK IF THE NUMBER OF ARGUMENTS MATCH VALUE OF arguments_number AND IF THE VALUE IS A POSITIVE INTEGER NUMBER
-		var definition = definitionsMap.get(ARGUMENTS_NUMBER).get(ZERO);
-		if (! (definition instanceof DefinitionNonOption)) {
-			errorService.addError(new Error(displayService.errorLn("[{}] must be of [DefinitionNonOption] type, but found [{}]", ARGUMENTS_NUMBER.getArgumentCode(), definition.getClass().getSimpleName())));
-			return FAILED;
-		}
+		var defNum = definitionsMap.get(ARGUMENTS_NUMBER).get(ZERO);
 		int argumentNumberSpecifiedValue;
-		var value = ((DefinitionNonOption) definition).getPossibleValues().get(ZERO);
+		var value = ((DefinitionNonOption) defNum).getPossibleValues().get(ZERO);
 		try {
 			argumentNumberSpecifiedValue = Integer.parseInt(value);
 			if (argumentNumberSpecifiedValue < 0) throw new NumberFormatException();
@@ -252,13 +266,21 @@ public class RuleServiceImpl implements RuleService {
 			errorService.addError(new Error(displayService.errorLn("The value for [{}] must be a positive integer number. Found [{}]", ARGUMENTS_NUMBER.getArgumentCode(), value)));
 			return FAILED;
 		}
+		var argsDef = definitionsMap.get(ARGUMENT);
+		var numberOfArgumentsCountedInDefFile = argsDef == null ? ZERO : argsDef.size();
 		if (argumentNumberSpecifiedValue != numberOfArgumentsCountedInDefFile) {
 			errorService.addError(new Error(displayService.errorLn("[{}={}], but found [{}] argument definitions", ARGUMENTS_NUMBER.getArgumentCode(), argumentNumberSpecifiedValue, numberOfArgumentsCountedInDefFile)));
 			return FAILED;
 		}
 
 		// CHECK IF THE ARGUMENTS HAVE DUPLICATES
-		// TODO
+		var duplicated = rule_HaveDuplicates(argsDef);
+		if (! duplicated.isEmpty()) {
+			errorService.addError(new Error(displayService.errorLn("Duplicate detected for [{}]: {}", ARGUMENT.getArgumentCode(),
+					duplicated.stream().map( d -> (DefinitionNonOption) d).map(DefinitionNonOption::getPossibleValues).collect(Collectors.toSet())
+			)));
+			return FAILED;
+		}
 
 		return SUCCESSFUL;
 	}

@@ -22,7 +22,6 @@ option={--print-to,-pt}={Logs.txt,#}
 
 argument=sudokufile.txt
 argument=#
-argument=#
 argument=1111111111
 argument={Logs.txt,#}
 #argument=
