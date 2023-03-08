@@ -3,9 +3,7 @@ package com.hardcodacii.jcmdargs.service.impl;
 import com.hardcodacii.jcmdargs.service.DisplayService;
 import com.hardcodacii.jcmdargs.service.ErrorService;
 import com.hardcodacii.jcmdargs.service.RuleService;
-import com.hardcodacii.jcmdargs.service.model.Definition;
-import com.hardcodacii.jcmdargs.service.model.DefinitionNonOption;
-import com.hardcodacii.jcmdargs.service.model.DefinitionType;
+import com.hardcodacii.jcmdargs.service.model.*;
 import com.hardcodacii.jcmdargs.service.model.Error;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,6 +24,7 @@ public class RuleServiceImpl implements RuleService {
 	private final static DefinitionType ALLOWED_ARGUMENTS_ORDER = DefinitionType.ALLOWED_ARGUMENTS_ORDER;
 	private final static DefinitionType ARGUMENTS_NUMBER = DefinitionType.ARGUMENTS_NUMBER;
 	private final static DefinitionType ARGUMENT = DefinitionType.ARGUMENT;
+	private final static DefinitionType OPTION = DefinitionType.OPTION;
 	private final static int ZERO = 0;
 	private final static boolean FAILED = false;
 	private final static boolean SUCCESSFUL = true;
@@ -49,7 +48,7 @@ public class RuleServiceImpl implements RuleService {
 				- CHECK IF THE ARGUMENTS HAVE DUPLICATES
 
 			option
-				- IF SPECIFIED IN allowed_arguments_order CHECK THE NUMBER OF option DEFINITION, MUST BE > 0
+				- IF SPECIFIED IN allowed_arguments_order CHECK THE NUMBER OF option DEFINITION, MUST BE > 0 ----> THIS RULE IS DETECTED IN allowed_arguments_order RULES
 				- CHECK IF THE OPTIONS HAVE DUPLICATES
 
 			command
@@ -64,6 +63,9 @@ public class RuleServiceImpl implements RuleService {
 
 		if (argumentRules(definitionsMap)) displayService.infoLn("Applying [{}] rules: SUCCESSFUL", ARGUMENT.getArgumentCode());
 		else displayService.infoLn("Applying [{}] rules: FAILED", ARGUMENT.getArgumentCode());
+
+		if (optionRules(definitionsMap)) displayService.infoLn("Applying [{}] rules: SUCCESSFUL", OPTION.getArgumentCode());
+		else displayService.infoLn("Applying [{}] rules: FAILED", OPTION.getArgumentCode());
 
 		return errorService.getErrors().size() == ZERO ? Optional.of(true) : Optional.of(false);
 	}
@@ -281,6 +283,55 @@ public class RuleServiceImpl implements RuleService {
 			)));
 			return FAILED;
 		}
+
+		return SUCCESSFUL;
+	}
+
+
+	/*
+		option
+			- IF SPECIFIED IN allowed_arguments_order CHECK THE NUMBER OF option DEFINITION, MUST BE > 0 ----> THIS RULE IS DETECTED IN allowed_arguments_order RULES
+			- CHECK IF NUMBER OF OPTION DEFINITIONS ( ex: {--debug,-d} ) >= 1 AND <= 2
+			- CHECK IF THE OPTIONS HAVE DUPLICATES
+	 */
+	private boolean optionRules(Map<DefinitionType, List<Definition>> definitionsMap) {
+		if (definitionsMap == null) {
+			errorService.addError(new Error(displayService.errorLn("Cannot apply rules for [{}] defNum because map of definitions is null", OPTION.getArgumentCode())));
+			return FAILED;
+		}
+
+		if (! definitionsMap.containsKey(OPTION)) {
+			displayService.warning("No instances detected for [{}]", OPTION.getArgumentCode());
+			return SUCCESSFUL;
+		}
+
+		var optsDefList = definitionsMap.get(OPTION);
+
+		// CHECK IF NUMBER OF OPTION DEFINITIONS ( ex: {--debug,-d} ) >= 1 AND <= 2
+		for (var def : optsDefList) {
+			if (! (def instanceof DefinitionOption)) {
+				errorService.addError(new Error(displayService.errorLn("[{}] must be of [DefinitionNonOption] type, but found [{}]", OPTION.getArgumentCode(), def.getClass().getSimpleName())));
+				return FAILED;
+			}
+			var allowedValuesList   = ((DefinitionOption) def).getAllowedValues();
+			var optsDefinitionsList = ((DefinitionOption) def).getOptsDefinitions();
+
+			var failedRule1 = allowedValuesList == null || optsDefinitionsList == null;
+			var failedRule2 = allowedValuesList.size() >= 1 && allowedValuesList.get(ZERO).equals("");
+			var failedRule3 = optsDefinitionsList.size() >= 1 && optsDefinitionsList.get(ZERO).equals("");
+			var failedRule4 = !(1 <= allowedValuesList.size());
+			var failedRule5 = !(1 <= optsDefinitionsList.size() && optsDefinitionsList.size() <= 2);
+			var agregatedFailedRules = failedRule1 || failedRule3 || failedRule5;
+
+			if (agregatedFailedRules)  {
+				errorService.addError(new Error(displayService.errorLn("The number of options definitions (ex: {--debug,-d}) for [{}] must be equal with 1 or 2. Found: {}", OPTION.getArgumentCode(), optsDefinitionsList)));
+				//return FAILED;
+			}
+		}
+
+		// CHECK IF THE OPTIONS HAVE DUPLICATES
+		var numberOfOptionsCountedInDefFile = optsDefList == null ? ZERO : optsDefList.size();
+
 
 		return SUCCESSFUL;
 	}

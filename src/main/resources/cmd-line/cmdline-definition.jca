@@ -16,9 +16,13 @@ allowed_arguments_order={option,argument}
 #allowed_arguments_order={option,arguments_number,argument,argument,argumentargumentargument,argumentargumentargument,allowed_arguments_order}
 
 #option=!{--help,-h}={} ORDER={option,arguments_number,argument}={one,two,three} option={--print-to,-pt,-prTO}={Logs.txt,#}
+#option=!{}
+#option=!{--help}
+#option=!{}={}
+option=!{--help}={}
 option={--debug,-d}={enable,disable}
 option={--print-to,-pt}={Logs.txt,#}
-#option={--print-to,-pt,-prTO}={Logs.txt,#}
+option={--print-to,-pt,-prTO}={Logs.txt,#}
 
 argument=sudokufile.txt
 argument=#
