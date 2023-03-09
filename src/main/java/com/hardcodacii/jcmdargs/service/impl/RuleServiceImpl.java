@@ -1,11 +1,13 @@
 package com.hardcodacii.jcmdargs.service.impl;
 
+import com.hardcodacii.jcmdargs.global.SystemEnvironmentVariable;
 import com.hardcodacii.jcmdargs.service.DisplayService;
 import com.hardcodacii.jcmdargs.service.ErrorService;
 import com.hardcodacii.jcmdargs.service.RuleService;
 import com.hardcodacii.jcmdargs.service.model.*;
 import com.hardcodacii.jcmdargs.service.model.Error;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -20,14 +22,20 @@ import java.util.stream.Collectors;
 public class RuleServiceImpl implements RuleService {
 	private final DisplayService displayService;
 	private final ErrorService errorService;
+	private final SystemEnvironmentVariable environment;
 
 	private final static DefinitionType ALLOWED_ARGUMENTS_ORDER = DefinitionType.ALLOWED_ARGUMENTS_ORDER;
 	private final static DefinitionType ARGUMENTS_NUMBER = DefinitionType.ARGUMENTS_NUMBER;
 	private final static DefinitionType ARGUMENT = DefinitionType.ARGUMENT;
 	private final static DefinitionType OPTION = DefinitionType.OPTION;
+
 	private final static int ZERO = 0;
+	private final static int ONE = 1;
+	private final static int TWO = 2;
+
 	private final static boolean FAILED = false;
 	private final static boolean SUCCESSFUL = true;
+	private final static String EMPTY_STRING = "";
 
 	@Override
 	public Optional<Boolean> applyRules(Map<DefinitionType, List<Definition>> definitionsMap) {
@@ -49,6 +57,8 @@ public class RuleServiceImpl implements RuleService {
 
 			option
 				- IF SPECIFIED IN allowed_arguments_order CHECK THE NUMBER OF option DEFINITION, MUST BE > 0 ----> THIS RULE IS DETECTED IN allowed_arguments_order RULES
+				- CHECK IF NUMBER OF OPTION DEFINITIONS ( ex: {--debug,-d} ) >= 1 AND <= 2
+				- CHECK IF OPTIONS DEFINITION, IF MORE THAN 1, HAVE 2 FORM: LONG OR SHORT (ex: {--help, -h})
 				- CHECK IF THE OPTIONS HAVE DUPLICATES
 
 			command
@@ -292,6 +302,7 @@ public class RuleServiceImpl implements RuleService {
 		option
 			- IF SPECIFIED IN allowed_arguments_order CHECK THE NUMBER OF option DEFINITION, MUST BE > 0 ----> THIS RULE IS DETECTED IN allowed_arguments_order RULES
 			- CHECK IF NUMBER OF OPTION DEFINITIONS ( ex: {--debug,-d} ) >= 1 AND <= 2
+			- CHECK IF OPTIONS DEFINITION, IF MORE THAN 1, HAVE 2 FORM: LONG OR SHORT (ex: {--help, -h})
 			- CHECK IF THE OPTIONS HAVE DUPLICATES
 	 */
 	private boolean optionRules(Map<DefinitionType, List<Definition>> definitionsMap) {
@@ -307,8 +318,10 @@ public class RuleServiceImpl implements RuleService {
 
 		var optsDefList = definitionsMap.get(OPTION);
 
-		// CHECK IF NUMBER OF OPTION DEFINITIONS ( ex: {--debug,-d} ) >= 1 AND <= 2
+		Map<String, Integer> duplicatedOptsMap = new HashMap<>();
+		var haveError = false;
 		for (var def : optsDefList) {
+			// CHECK IF NUMBER OF OPTION DEFINITIONS ( ex: {--debug,-d} ) >= 1 AND <= 2
 			if (! (def instanceof DefinitionOption)) {
 				errorService.addError(new Error(displayService.errorLn("[{}] must be of [DefinitionNonOption] type, but found [{}]", OPTION.getArgumentCode(), def.getClass().getSimpleName())));
 				return FAILED;
@@ -317,22 +330,60 @@ public class RuleServiceImpl implements RuleService {
 			var optsDefinitionsList = ((DefinitionOption) def).getOptsDefinitions();
 
 			var failedRule1 = allowedValuesList == null || optsDefinitionsList == null;
-			var failedRule2 = allowedValuesList.size() >= 1 && allowedValuesList.get(ZERO).equals("");
-			var failedRule3 = optsDefinitionsList.size() >= 1 && optsDefinitionsList.get(ZERO).equals("");
-			var failedRule4 = !(1 <= allowedValuesList.size());
-			var failedRule5 = !(1 <= optsDefinitionsList.size() && optsDefinitionsList.size() <= 2);
+			var failedRule2 = allowedValuesList.size() >= ONE && allowedValuesList.get(ZERO).equals(EMPTY_STRING);
+			var failedRule3 = optsDefinitionsList.size() >= ONE && optsDefinitionsList.get(ZERO).equals(EMPTY_STRING);
+			var failedRule4 = !(ONE <= allowedValuesList.size());
+			var failedRule5 = !(ONE <= optsDefinitionsList.size() && optsDefinitionsList.size() <= TWO);
 			var agregatedFailedRules = failedRule1 || failedRule3 || failedRule5;
 
 			if (agregatedFailedRules)  {
 				errorService.addError(new Error(displayService.errorLn("The number of options definitions (ex: {--debug,-d}) for [{}] must be equal with 1 or 2. Found: {}", OPTION.getArgumentCode(), optsDefinitionsList)));
-				//return FAILED;
+				haveError = true;
+			}
+
+			// CHECK IF OPTIONS DEFINITION, IF MORE THAN 1, HAVE 2 FORM: LONG OR SHORT (ex: {--help, -h})
+			var LONG = environment.TOKEN_SPECIAL_CHAR_OPTION_PREFIX_LONG;
+			var SHORT = environment.TOKEN_SPECIAL_CHAR_OPTION_PREFIX_SHORT.toString();
+			var foundLongAndShort = false;
+
+			// format, must start with -- or -
+			if (optsDefinitionsList.size() == TWO) {
+				var optDef1 = optsDefinitionsList.get(ZERO);
+				var optDef2 = optsDefinitionsList.get(ONE);
+
+				if ((optDef1.startsWith(LONG) && optDef2.startsWith(SHORT)) || (optDef1.startsWith(SHORT) && optDef2.startsWith(LONG))) {
+					foundLongAndShort = true;
+				} else {
+					errorService.addError(new Error(displayService.errorLn("The options must be prefixed with [{}] and [{}] (ex: {--help, -h}). Found: [{},{}]", LONG, SHORT, optDef1, optDef2)));
+					haveError = true;
+				}
+			} else {
+				// optsDefinitionsList.size() == 1
+				var optDef = optsDefinitionsList.get(ZERO);
+				if (optDef.startsWith(LONG) || optDef.startsWith(SHORT)) {
+					foundLongAndShort = true;
+				} else {
+					errorService.addError(new Error(displayService.errorLn("The options must be prefixed with [{}] or [{}] (ex: {--help} or {-h}). Found: [{}]", LONG, SHORT, optDef)));
+					haveError = true;
+				}
+			}
+
+			// CHECK IF THE OPTIONS HAVE DUPLICATES
+			for (var key : optsDefinitionsList) {
+				if (duplicatedOptsMap.containsKey(key)) {
+					var value = duplicatedOptsMap.get(key) + 1;
+					duplicatedOptsMap.put(key, value);
+					haveError = true;
+				}
+				else duplicatedOptsMap.put(key, 1);
 			}
 		}
 
-		// CHECK IF THE OPTIONS HAVE DUPLICATES
-		var numberOfOptionsCountedInDefFile = optsDefList == null ? ZERO : optsDefList.size();
+		// display duplicate if any
+		for (var entry : duplicatedOptsMap.entrySet())
+			if (entry.getValue() > 1)
+				errorService.addError(new Error(displayService.errorLn("Duplicate detected in [{}] definition. Found: [{}] instances of [{}]", OPTION.getArgumentCode(), entry.getValue(), entry.getKey())));
 
-
-		return SUCCESSFUL;
+		return haveError ? FAILED : SUCCESSFUL;
 	}
 }
