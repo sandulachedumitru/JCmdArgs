@@ -28,6 +28,7 @@ public class RuleServiceImpl implements RuleService {
 	private final static DefinitionType ARGUMENTS_NUMBER = DefinitionType.ARGUMENTS_NUMBER;
 	private final static DefinitionType ARGUMENT = DefinitionType.ARGUMENT;
 	private final static DefinitionType OPTION = DefinitionType.OPTION;
+	private final static DefinitionType COMMAND = DefinitionType.COMMAND;
 
 	private final static int ZERO = 0;
 	private final static int ONE = 1;
@@ -62,8 +63,8 @@ public class RuleServiceImpl implements RuleService {
 				- CHECK IF THE OPTIONS HAVE DUPLICATES
 
 			command
-				- IF SPECIFIED IN allowed_arguments_order CHECK THE NUMBER OF command DEFINITION, MUST BE == 1 ??
-				- CHECK IF THE COMMANDS HAVE DUPLICATES ??
+				- IF SPECIFIED IN allowed_arguments_order CHECK THE NUMBER OF command DEFINITION, MUST BE == 1 ??  ----> THIS RULE IS DETECTED IN allowed_arguments_order RULES
+				- CHECK IF THE COMMAND HAVE MORE THAN 1 INSTANCE
 		 */
 		if (allowedArgumentsOrderRules(definitionsMap)) displayService.infoLn("Applying [{}] rules: SUCCESSFUL", ALLOWED_ARGUMENTS_ORDER.getArgumentCode());
 		else displayService.infoLn("Applying [{}] rules: FAILED", ALLOWED_ARGUMENTS_ORDER.getArgumentCode());
@@ -76,6 +77,9 @@ public class RuleServiceImpl implements RuleService {
 
 		if (optionRules(definitionsMap)) displayService.infoLn("Applying [{}] rules: SUCCESSFUL", OPTION.getArgumentCode());
 		else displayService.infoLn("Applying [{}] rules: FAILED", OPTION.getArgumentCode());
+
+		if (commandRules(definitionsMap)) displayService.infoLn("Applying [{}] rules: SUCCESSFUL", COMMAND.getArgumentCode());
+		else displayService.infoLn("Applying [{}] rules: FAILED", COMMAND.getArgumentCode());
 
 		return errorService.getErrors().size() == ZERO ? Optional.of(true) : Optional.of(false);
 	}
@@ -297,7 +301,6 @@ public class RuleServiceImpl implements RuleService {
 		return SUCCESSFUL;
 	}
 
-
 	/*
 		option
 			- IF SPECIFIED IN allowed_arguments_order CHECK THE NUMBER OF option DEFINITION, MUST BE > 0 ----> THIS RULE IS DETECTED IN allowed_arguments_order RULES
@@ -385,5 +388,31 @@ public class RuleServiceImpl implements RuleService {
 				errorService.addError(new Error(displayService.errorLn("Duplicate detected in [{}] definition. Found: [{}] instances of [{}]", OPTION.getArgumentCode(), entry.getValue(), entry.getKey())));
 
 		return haveError ? FAILED : SUCCESSFUL;
+	}
+
+	/*
+		command
+			- IF SPECIFIED IN allowed_arguments_order CHECK THE NUMBER OF command DEFINITION, MUST BE == 1 ??  ----> THIS RULE IS DETECTED IN allowed_arguments_order RULES
+			- CHECK IF THE COMMAND HAVE MORE THAN 1 INSTANCE
+	 */
+	private boolean commandRules(Map<DefinitionType, List<Definition>> definitionsMap) {
+		if (definitionsMap == null) {
+			errorService.addError(new Error(displayService.errorLn("Cannot apply rules for [{}] defNum because map of definitions is null", COMMAND.getArgumentCode())));
+			return FAILED;
+		}
+
+		if (! definitionsMap.containsKey(COMMAND)) {
+			displayService.warning("No instances detected for [{}]", COMMAND.getArgumentCode());
+			return SUCCESSFUL;
+		}
+
+		// CHECK IF THE COMMAND HAVE MORE THAN 1 INSTANCE
+		var cmdDefinitionList = definitionsMap.get(COMMAND);
+		if (cmdDefinitionList.size() != ONE) {
+			errorService.addError(new Error(displayService.errorLn("[{}] have more than 1 definition per definition file. Found [{}]: [{}]", COMMAND.getArgumentCode(), cmdDefinitionList.size(), cmdDefinitionList)));
+			return FAILED;
+		}
+
+		return SUCCESSFUL;
 	}
 }
