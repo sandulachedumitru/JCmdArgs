@@ -1,6 +1,7 @@
 package com.hardcodacii.jcmdargs;
 
 import com.hardcodacii.jcmdargs.controller.MainController;
+import com.hardcodacii.jcmdargs.exception.CmdArgsLineException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -16,7 +17,7 @@ public class JCmdArgsApplication implements CommandLineRunner {
 	}
 
 	@Override
-	public void run(String... args) {
-		mainController.start(args);
+	public void run(String... args) throws CmdArgsLineException {
+		mainController.defines(args);
 	}
 }

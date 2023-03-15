@@ -43,7 +43,6 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 		displayService.infoLn("=============================");
 		if (!fileExists) {
 			errorService.addError(new Error(displayService.errorLn("File [{}] doesn't existS.", file)));
-			displayErrors();
 			return Optional.empty();
 		}
 		displayService.infoLn("File [{}] existS.", file);
@@ -78,12 +77,11 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 		displayService.emptyLine();
 
 		// RULE: CHECK IF DEFINITIONS HAVE BEEN FOUND
-		displayService.infoLn("RULE --> CHECK IF DEFINITIONS HAVE BEEN FOUND");
-		displayService.infoLn("=============================================");
+		displayService.infoLn("RULE --> CHECK IF DEFINITIONS FILE HAVE BEEN FOUND");
+		displayService.infoLn("==================================================");
 		if (parsedDefinitionsMap.size() == 0) {
 			errorService.addError(new Error(displayService.errorLn("No definition found in file [{}]", file)));
 			displayService.emptyLine();
-			displayErrors();
 			return Optional.empty();
 		}
 		displayService.infoLn("Definition found in the [{}] file", file);
@@ -102,21 +100,8 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 		}
 		displayService.emptyLine();
 
-		// DISPLAY ERRORS AND EMPTY ERRORS STACK
-		displayErrors();
-		errorService.emptyErrorsList();
-
 		// RETURN
 		return errorService.getErrors().size() == 0 ? Optional.of(definitionsMap) : Optional.empty();
-	}
-
-	private void displayErrors() {
-		displayService.infoLn("ERROR LIST");
-		displayService.infoLn("==========");
-		for (var err : errorService.getErrors()) {
-			displayService.infoLn("\t" + err.getMessage());
-		}
-		displayService.emptyLine();
 	}
 
 	private void lineProcessor(String line) {
@@ -215,7 +200,6 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 								if (transporter.singleOption) {
 									errorService.addError(new Error(displayService.errorLn("Character ['!'] not allowed: " + defProp.getAllowedValues())));
 								}
-//								definition.setSingleOption(transporter.singleOption);
 							}
 							definitionList.add(definition);
 						} else {
@@ -340,24 +324,5 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 	private static class DefinitionPropertiesTokenizedTransporter {
 		private List<String> items;
 		private boolean singleOption = false;
-	}
-
-	private void applyRules() {
-		// CHECK IF allowed_arguments_order DEFINITION EXISTS. IS mandatory
-
-		// CHECK IF DEFINITIONS FROM allowed_arguments_order LIST HAVE INSTANCES. The list size != 0
-
-		// CHECK IF arguments_number EXISTS
-
-		// CHECK THE NUMBERS OF ARGUMENTS
-
-		// CHECK IF THE ARGUMENTS HAVE DUPLICATES
-
-		// CHECK IF THE OPTIONS HAVE DUPLICATES
-
-		// CHECK IF THE OPTIONS HAVE DUPLICATES
-
-		// CHECK IF THE COMMANDS HAVE DUPLICATES
-
 	}
 }

@@ -12,6 +12,6 @@ import java.util.Optional;
  */
 
 @FunctionalInterface
-public interface CmdLineDefinitionParserService {
-	Optional<Map<DefinitionType, List<Definition>>> parseDefinitionFile();
+public interface RuleService {
+	Optional<Boolean> applyRules(Map<DefinitionType, List<Definition>> definitionsMap);
 }
