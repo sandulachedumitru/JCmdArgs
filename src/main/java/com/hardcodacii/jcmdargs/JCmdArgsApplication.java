@@ -1,7 +1,7 @@
 package com.hardcodacii.jcmdargs;
 
-import com.hardcodacii.jcmdargs.controller.MainController;
-import com.hardcodacii.jcmdargs.exception.CmdArgsLineException;
+import com.hardcodacii.jcmdargs.definitions_arguments_parser_module.controller.MainController;
+import com.hardcodacii.jcmdargs.definitions_arguments_parser_module.exception.CmdArgsLineException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;

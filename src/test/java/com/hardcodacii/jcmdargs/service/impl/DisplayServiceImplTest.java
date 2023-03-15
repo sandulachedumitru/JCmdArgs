@@ -1,13 +1,9 @@
 package com.hardcodacii.jcmdargs.service.impl;
 
-import com.hardcodacii.jcmdargs.service.DisplayService;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.DisplayName;
+import com.hardcodacii.jcmdargs.definitions_arguments_parser_module.service.DisplayService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Dumitru Săndulache (sandulachedumitru@hotmail.com)
