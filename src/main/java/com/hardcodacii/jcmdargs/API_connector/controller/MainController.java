@@ -1,4 +1,4 @@
-package com.hardcodacii.jcmdargs.definitions_arguments_parser_module.controller;
+package com.hardcodacii.jcmdargs.API_connector.controller;
 
 import com.hardcodacii.jcmdargs.commons_module.service.ErrorService;
 import com.hardcodacii.jcmdargs.definitions_arguments_parser_module.exception.DefinitionArgumentsParserException;
