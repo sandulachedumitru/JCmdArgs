@@ -13,13 +13,10 @@ public enum DefinitionType {
 	ARGUMENTS_NUMBER("arguments_number"),
 	ALLOWED_ARGUMENTS_ORDER("allowed_arguments_order");
 
-	private String argumentCode;
+	private final String argumentCode;
+
 	DefinitionType(String argumentCode) {
 		this.argumentCode = argumentCode;
-	}
-
-	public String getArgumentCode() {
-		return argumentCode;
 	}
 
 	public static DefinitionType getDefinitionTypeByCode(String argumentCode) {
@@ -27,5 +24,9 @@ public enum DefinitionType {
 				.filter(argumentType -> argumentType.getArgumentCode().equalsIgnoreCase(argumentCode))
 				.findFirst();
 		return argumentTypeOpt.orElse(null);
+	}
+
+	public String getArgumentCode() {
+		return argumentCode;
 	}
 }

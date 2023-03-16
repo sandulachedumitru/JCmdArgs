@@ -11,7 +11,7 @@ import java.util.List;
 
 @Data
 public class DefinitionOption extends Definition {
+	boolean singleOption = false;
 	private List<String> allowedValues = new ArrayList<>(); // ex: {enable,disable} OR ExampleFile.txt
 	private List<String> optsDefinitions = new ArrayList<>(); // ex: {--debug,-d}
-	boolean singleOption = false;
 }

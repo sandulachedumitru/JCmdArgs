@@ -1,4 +1,4 @@
-package com.hardcodacii.jcmdargs.definitions_arguments_parser_module.service.model;
+package com.hardcodacii.jcmdargs.commons_module.service.model;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

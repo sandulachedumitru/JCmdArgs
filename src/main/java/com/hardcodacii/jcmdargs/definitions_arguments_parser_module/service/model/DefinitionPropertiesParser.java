@@ -4,6 +4,7 @@ import lombok.Data;
 
 /**
  * Marker interface
+ *
  * @author Dumitru Săndulache (sandulachedumitru@hotmail.com)
  */
 

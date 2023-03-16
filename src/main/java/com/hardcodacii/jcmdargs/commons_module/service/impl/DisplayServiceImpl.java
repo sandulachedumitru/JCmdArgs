@@ -1,8 +1,8 @@
-package com.hardcodacii.jcmdargs.definitions_arguments_parser_module.service.impl;
+package com.hardcodacii.jcmdargs.commons_module.service.impl;
 
 
 import com.hardcodacii.jcmdargs.commons_module.global.SystemEnvironmentVariable;
-import com.hardcodacii.jcmdargs.definitions_arguments_parser_module.service.DisplayService;
+import com.hardcodacii.jcmdargs.commons_module.service.DisplayService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -80,9 +80,9 @@ public class DisplayServiceImpl implements DisplayService {
 		var CURLY_BRACES_REGEX = "\\{}";
 		var CURLY_BRACES = "{}";
 
-		int index= 0;
+		int index = 0;
 		String newLog = log;
-		while(newLog.contains(CURLY_BRACES)) {
+		while (newLog.contains(CURLY_BRACES)) {
 			if (args.length != 0 && index < args.length) {
 				var arg = args[index] != null ? args[index].toString() : "null";
 				newLog = newLog.replaceFirst(CURLY_BRACES_REGEX, arg);

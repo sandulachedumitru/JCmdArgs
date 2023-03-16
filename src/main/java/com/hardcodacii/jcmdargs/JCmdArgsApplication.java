@@ -1,7 +1,7 @@
 package com.hardcodacii.jcmdargs;
 
 import com.hardcodacii.jcmdargs.definitions_arguments_parser_module.controller.MainController;
-import com.hardcodacii.jcmdargs.definitions_arguments_parser_module.exception.CmdArgsLineException;
+import com.hardcodacii.jcmdargs.definitions_arguments_parser_module.exception.DefinitionArgumentsParserException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -17,7 +17,7 @@ public class JCmdArgsApplication implements CommandLineRunner {
 	}
 
 	@Override
-	public void run(String... args) throws CmdArgsLineException {
+	public void run(String... args) throws DefinitionArgumentsParserException {
 		mainController.defines(args);
 	}
 }

@@ -1,16 +1,19 @@
-package com.hardcodacii.jcmdargs.definitions_arguments_parser_module.service.impl;
+package com.hardcodacii.jcmdargs.commons_module.service.impl;
 
-import com.hardcodacii.jcmdargs.definitions_arguments_parser_module.service.model.Error;
-import com.hardcodacii.jcmdargs.definitions_arguments_parser_module.service.DisplayService;
-import com.hardcodacii.jcmdargs.definitions_arguments_parser_module.service.ErrorService;
-import com.hardcodacii.jcmdargs.definitions_arguments_parser_module.service.FileIOService;
+import com.hardcodacii.jcmdargs.commons_module.service.DisplayService;
+import com.hardcodacii.jcmdargs.commons_module.service.ErrorService;
+import com.hardcodacii.jcmdargs.commons_module.service.FileIOService;
+import com.hardcodacii.jcmdargs.commons_module.service.model.Error;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 
 /**
  * @author Dumitru Săndulache (sandulachedumitru@hotmail.com)

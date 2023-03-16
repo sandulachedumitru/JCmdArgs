@@ -1,11 +1,14 @@
 package com.hardcodacii.jcmdargs.definitions_arguments_parser_module.service.impl;
 
 import com.hardcodacii.jcmdargs.commons_module.global.SystemEnvironmentVariable;
-import com.hardcodacii.jcmdargs.definitions_arguments_parser_module.service.DisplayService;
-import com.hardcodacii.jcmdargs.definitions_arguments_parser_module.service.ErrorService;
+import com.hardcodacii.jcmdargs.commons_module.service.DisplayService;
+import com.hardcodacii.jcmdargs.commons_module.service.ErrorService;
+import com.hardcodacii.jcmdargs.commons_module.service.model.Error;
 import com.hardcodacii.jcmdargs.definitions_arguments_parser_module.service.RuleService;
-import com.hardcodacii.jcmdargs.definitions_arguments_parser_module.service.model.Error;
-import com.hardcodacii.jcmdargs.definitions_arguments_parser_module.service.model.*;
+import com.hardcodacii.jcmdargs.definitions_arguments_parser_module.service.model.Definition;
+import com.hardcodacii.jcmdargs.definitions_arguments_parser_module.service.model.DefinitionNonOption;
+import com.hardcodacii.jcmdargs.definitions_arguments_parser_module.service.model.DefinitionOption;
+import com.hardcodacii.jcmdargs.definitions_arguments_parser_module.service.model.DefinitionType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,23 +22,81 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class RuleServiceImpl implements RuleService {
-	private final DisplayService displayService;
-	private final ErrorService errorService;
-	private final SystemEnvironmentVariable environment;
-
 	private final static DefinitionType ALLOWED_ARGUMENTS_ORDER = DefinitionType.ALLOWED_ARGUMENTS_ORDER;
 	private final static DefinitionType ARGUMENTS_NUMBER = DefinitionType.ARGUMENTS_NUMBER;
 	private final static DefinitionType ARGUMENT = DefinitionType.ARGUMENT;
 	private final static DefinitionType OPTION = DefinitionType.OPTION;
 	private final static DefinitionType COMMAND = DefinitionType.COMMAND;
-
 	private final static int ZERO = 0;
 	private final static int ONE = 1;
 	private final static int TWO = 2;
-
 	private final static boolean FAILED = false;
 	private final static boolean SUCCESSFUL = true;
 	private final static String EMPTY_STRING = "";
+	private final DisplayService displayService;
+	private final ErrorService errorService;
+	private final SystemEnvironmentVariable environment;
+
+	// return list of errors if found any
+	private static Set<String> rule_ContainsOnlyDefinedTypes(List<String> listOfPossibleValues) {
+		Set<String> unknownType = new HashSet<>();
+		for (var val : listOfPossibleValues) {
+			var defType = DefinitionType.getDefinitionTypeByCode(val);
+			if (defType == null || defType.equals(DefinitionType.ALLOWED_ARGUMENTS_ORDER)) unknownType.add(val);
+		}
+
+
+		return unknownType;
+	}
+
+	// return list of errors if found any
+	private static <T> Set<T> rule_HaveDuplicates(List<T> itemList) {
+		Set<T> duplicates = new HashSet<>();
+		Set<T> unique = new HashSet<>();
+
+		for (T t : itemList)
+			if (!unique.add(t)) duplicates.add(t);
+
+		return duplicates;
+	}
+
+	// return list of errors if found any
+	private static Set<String> rule_DefinitionInstancesAreSpecifiedIn_allowed_arguments_order_itemList(Map<DefinitionType, List<Definition>> definitionsMap, List<String> listOfPossibleValues) {
+		Set<String> unimplementedInstances = new HashSet<>();
+		for (var entry : definitionsMap.entrySet()) {
+			var argType = entry.getKey().getArgumentCode();
+			if (!listOfPossibleValues.contains(argType) && !argType.equals(ALLOWED_ARGUMENTS_ORDER.getArgumentCode()))
+				unimplementedInstances.add(argType);
+		}
+
+		return unimplementedInstances;
+	}
+
+	// return list of errors if found any
+	private static Set<String> rule_allowed_arguments_order_itemListHasDefinitionInstances(Map<DefinitionType, List<Definition>> definitionsMap, List<String> listOfPossibleValues) {
+		Set<String> unimplementedInstances = new HashSet<>();
+		for (var val : listOfPossibleValues) {
+			var defType = DefinitionType.getDefinitionTypeByCode(val);
+			if (defType == null || !definitionsMap.containsKey(defType))
+				unimplementedInstances.add(val);
+		}
+
+		return unimplementedInstances;
+	}
+
+	private static void createArgumentNumberWithValue(Map<DefinitionType, List<Definition>> definitionsMap, int value) {
+		// create a bew DefinitionNonOption
+		DefinitionNonOption def = new DefinitionNonOption();
+		def.setType(ARGUMENTS_NUMBER);
+		def.getPossibleValues().add(String.valueOf(value));
+
+		// add definition to list
+		List<Definition> defList = new ArrayList<>();
+		defList.add(def);
+
+		// add arguments_number to definitionMap
+		definitionsMap.put(ARGUMENTS_NUMBER, defList);
+	}
 
 	@Override
 	public Optional<Boolean> applyRules(Map<DefinitionType, List<Definition>> definitionsMap) {
@@ -65,19 +126,24 @@ public class RuleServiceImpl implements RuleService {
 				- IF SPECIFIED IN allowed_arguments_order CHECK THE NUMBER OF command DEFINITION, MUST BE == 1 ??  ----> THIS RULE IS DETECTED IN allowed_arguments_order RULES
 				- CHECK IF THE COMMAND HAVE MORE THAN 1 INSTANCE
 		 */
-		if (allowedArgumentsOrderRules(definitionsMap)) displayService.infoLn("Applying [{}] rules: SUCCESSFUL", ALLOWED_ARGUMENTS_ORDER.getArgumentCode());
+		if (allowedArgumentsOrderRules(definitionsMap))
+			displayService.infoLn("Applying [{}] rules: SUCCESSFUL", ALLOWED_ARGUMENTS_ORDER.getArgumentCode());
 		else displayService.infoLn("Applying [{}] rules: FAILED", ALLOWED_ARGUMENTS_ORDER.getArgumentCode());
 
-		if (argumentNumberRules(definitionsMap)) displayService.infoLn("Applying [{}] rules: SUCCESSFUL", ARGUMENTS_NUMBER.getArgumentCode());
+		if (argumentNumberRules(definitionsMap))
+			displayService.infoLn("Applying [{}] rules: SUCCESSFUL", ARGUMENTS_NUMBER.getArgumentCode());
 		else displayService.infoLn("Applying [{}] rules: FAILED", ARGUMENTS_NUMBER.getArgumentCode());
 
-		if (argumentRules(definitionsMap)) displayService.infoLn("Applying [{}] rules: SUCCESSFUL", ARGUMENT.getArgumentCode());
+		if (argumentRules(definitionsMap))
+			displayService.infoLn("Applying [{}] rules: SUCCESSFUL", ARGUMENT.getArgumentCode());
 		else displayService.infoLn("Applying [{}] rules: FAILED", ARGUMENT.getArgumentCode());
 
-		if (optionRules(definitionsMap)) displayService.infoLn("Applying [{}] rules: SUCCESSFUL", OPTION.getArgumentCode());
+		if (optionRules(definitionsMap))
+			displayService.infoLn("Applying [{}] rules: SUCCESSFUL", OPTION.getArgumentCode());
 		else displayService.infoLn("Applying [{}] rules: FAILED", OPTION.getArgumentCode());
 
-		if (commandRules(definitionsMap)) displayService.infoLn("Applying [{}] rules: SUCCESSFUL", COMMAND.getArgumentCode());
+		if (commandRules(definitionsMap))
+			displayService.infoLn("Applying [{}] rules: SUCCESSFUL", COMMAND.getArgumentCode());
 		else displayService.infoLn("Applying [{}] rules: FAILED", COMMAND.getArgumentCode());
 
 		return errorService.getErrors().size() == ZERO ? Optional.of(true) : Optional.of(false);
@@ -148,53 +214,6 @@ public class RuleServiceImpl implements RuleService {
 		return errorService.getErrors().size() == ZERO ? SUCCESSFUL : FAILED;
 	}
 
-	// return list of errors if found any
-	private static Set<String> rule_ContainsOnlyDefinedTypes(List<String> listOfPossibleValues) {
-		Set<String> unknownType = new HashSet<>();
-		for (var val : listOfPossibleValues) {
-			var defType = DefinitionType.getDefinitionTypeByCode(val);
-			if (defType == null || defType.equals(DefinitionType.ALLOWED_ARGUMENTS_ORDER)) unknownType.add(val);
-		}
-
-
-		return unknownType;
-	}
-
-	// return list of errors if found any
-	private static <T> Set<T> rule_HaveDuplicates(List<T> itemList) {
-		Set<T> duplicates = new HashSet<>();
-		Set<T> unique = new HashSet<>();
-
-		for (T t : itemList)
-			if (!unique.add(t)) duplicates.add(t);
-
-		return duplicates;
-	}
-
-	// return list of errors if found any
-	private static Set<String> rule_DefinitionInstancesAreSpecifiedIn_allowed_arguments_order_itemList(Map<DefinitionType, List<Definition>> definitionsMap, List<String> listOfPossibleValues) {
-		Set<String> unimplementedInstances = new HashSet<>();
-		for (var entry : definitionsMap.entrySet()) {
-			var argType = entry.getKey().getArgumentCode();
-			if (!listOfPossibleValues.contains(argType) && !argType.equals(ALLOWED_ARGUMENTS_ORDER.getArgumentCode()))
-				unimplementedInstances.add(argType);
-		}
-
-		return unimplementedInstances;
-	}
-
-	// return list of errors if found any
-	private static Set<String> rule_allowed_arguments_order_itemListHasDefinitionInstances(Map<DefinitionType, List<Definition>> definitionsMap, List<String> listOfPossibleValues) {
-		Set<String> unimplementedInstances = new HashSet<>();
-		for (var val : listOfPossibleValues) {
-			var defType = DefinitionType.getDefinitionTypeByCode(val);
-			if (defType == null || !definitionsMap.containsKey(defType))
-				unimplementedInstances.add(val);
-		}
-
-		return unimplementedInstances;
-	}
-
 	/*
 	arguments_number
 		- IF SPECIFIED IN allowed_arguments_order CHECK THE NUMBER OF arguments_number DEFINITIONS, MUST BE == 1
@@ -215,7 +234,7 @@ public class RuleServiceImpl implements RuleService {
 				return FAILED;
 			}
 			var argNumDef = argNumDefList.get(ZERO);
-			if (! (argNumDef instanceof DefinitionNonOption)) {
+			if (!(argNumDef instanceof DefinitionNonOption)) {
 				errorService.addError(new Error(displayService.errorLn("[{}] must be of [DefinitionNonOption] type, but found [{}]", ARGUMENTS_NUMBER.getArgumentCode(), argNumDef.getClass().getSimpleName())));
 				return FAILED;
 			}
@@ -240,20 +259,6 @@ public class RuleServiceImpl implements RuleService {
 		return SUCCESSFUL;
 	}
 
-	private static void createArgumentNumberWithValue(Map<DefinitionType, List<Definition>> definitionsMap, int value) {
-		// create a bew DefinitionNonOption
-		DefinitionNonOption def = new DefinitionNonOption();
-		def.setType(ARGUMENTS_NUMBER);
-		def.getPossibleValues().add(String.valueOf(value));
-
-		// add definition to list
-		List<Definition> defList = new ArrayList<>();
-		defList.add(def);
-
-		// add arguments_number to definitionMap
-		definitionsMap.put(ARGUMENTS_NUMBER, defList);
-	}
-
 	/*
 		argument
 			- CHECK IF THE NUMBER OF ARGUMENTS MATCH VALUE OF arguments_number AND IF THE VALUE IS AN INTEGER NUMBER
@@ -265,7 +270,7 @@ public class RuleServiceImpl implements RuleService {
 			return FAILED;
 		}
 
-		if (! definitionsMap.containsKey(ARGUMENT)) {
+		if (!definitionsMap.containsKey(ARGUMENT)) {
 			displayService.warning("No instances detected for [{}]", ARGUMENT.getArgumentCode());
 			return SUCCESSFUL;
 		}
@@ -290,9 +295,9 @@ public class RuleServiceImpl implements RuleService {
 
 		// CHECK IF THE ARGUMENTS HAVE DUPLICATES
 		var duplicated = rule_HaveDuplicates(argsDef);
-		if (! duplicated.isEmpty()) {
+		if (!duplicated.isEmpty()) {
 			errorService.addError(new Error(displayService.errorLn("Duplicate detected for [{}]: {}", ARGUMENT.getArgumentCode(),
-					duplicated.stream().map( d -> (DefinitionNonOption) d).map(DefinitionNonOption::getPossibleValues).collect(Collectors.toSet())
+					duplicated.stream().map(d -> (DefinitionNonOption) d).map(DefinitionNonOption::getPossibleValues).collect(Collectors.toSet())
 			)));
 			return FAILED;
 		}
@@ -313,7 +318,7 @@ public class RuleServiceImpl implements RuleService {
 			return FAILED;
 		}
 
-		if (! definitionsMap.containsKey(OPTION)) {
+		if (!definitionsMap.containsKey(OPTION)) {
 			displayService.warning("No instances detected for [{}]", OPTION.getArgumentCode());
 			return SUCCESSFUL;
 		}
@@ -324,11 +329,11 @@ public class RuleServiceImpl implements RuleService {
 		var haveError = false;
 		for (var def : optsDefList) {
 			// CHECK IF NUMBER OF OPTION DEFINITIONS ( ex: {--debug,-d} ) >= 1 AND <= 2
-			if (! (def instanceof DefinitionOption)) {
+			if (!(def instanceof DefinitionOption)) {
 				errorService.addError(new Error(displayService.errorLn("[{}] must be of [DefinitionNonOption] type, but found [{}]", OPTION.getArgumentCode(), def.getClass().getSimpleName())));
 				return FAILED;
 			}
-			var allowedValuesList   = ((DefinitionOption) def).getAllowedValues();
+			var allowedValuesList = ((DefinitionOption) def).getAllowedValues();
 			var optsDefinitionsList = ((DefinitionOption) def).getOptsDefinitions();
 
 			var failedRule1 = allowedValuesList == null || optsDefinitionsList == null;
@@ -338,7 +343,7 @@ public class RuleServiceImpl implements RuleService {
 			var failedRule5 = !(ONE <= optsDefinitionsList.size() && optsDefinitionsList.size() <= TWO);
 			var agregatedFailedRules = failedRule1 || failedRule3 || failedRule5;
 
-			if (agregatedFailedRules)  {
+			if (agregatedFailedRules) {
 				errorService.addError(new Error(displayService.errorLn("The number of options definitions (ex: {--debug,-d}) for [{}] must be equal with 1 or 2. Found: {}", OPTION.getArgumentCode(), optsDefinitionsList)));
 				haveError = true;
 			}
@@ -376,8 +381,7 @@ public class RuleServiceImpl implements RuleService {
 					var value = duplicatedOptsMap.get(key) + 1;
 					duplicatedOptsMap.put(key, value);
 					haveError = true;
-				}
-				else duplicatedOptsMap.put(key, 1);
+				} else duplicatedOptsMap.put(key, 1);
 			}
 		}
 
@@ -400,7 +404,7 @@ public class RuleServiceImpl implements RuleService {
 			return FAILED;
 		}
 
-		if (! definitionsMap.containsKey(COMMAND)) {
+		if (!definitionsMap.containsKey(COMMAND)) {
 			displayService.warning("No instances detected for [{}]", COMMAND.getArgumentCode());
 			return SUCCESSFUL;
 		}

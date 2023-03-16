@@ -1,4 +1,4 @@
-package com.hardcodacii.jcmdargs.definitions_arguments_parser_module.exception;
+package com.hardcodacii.jcmdargs.commons_module.exception;
 
 /**
  * @author Dumitru Săndulache (sandulachedumitru@hotmail.com)
