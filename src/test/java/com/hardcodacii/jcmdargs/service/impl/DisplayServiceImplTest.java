@@ -1,6 +1,6 @@
 package com.hardcodacii.jcmdargs.service.impl;
 
-import com.hardcodacii.jcmdargs.commons_module.service.DisplayService;
+import com.hardcodacii.jcmdargs.module.commons_module.service.DisplayService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

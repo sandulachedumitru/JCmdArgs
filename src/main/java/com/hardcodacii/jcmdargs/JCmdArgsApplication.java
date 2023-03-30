@@ -1,7 +1,7 @@
 package com.hardcodacii.jcmdargs;
 
 import com.hardcodacii.jcmdargs.API_connector.controller.MainController;
-import com.hardcodacii.jcmdargs.definitions_arguments_parser_module.exception.DefinitionArgumentsParserException;
+import com.hardcodacii.jcmdargs.module.definitions_arguments_parser_module.exception.DefinitionArgumentsParserException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;

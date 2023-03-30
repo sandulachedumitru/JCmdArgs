@@ -1,9 +1,9 @@
 package com.hardcodacii.jcmdargs.API_connector.controller;
 
-import com.hardcodacii.jcmdargs.commons_module.service.ErrorService;
-import com.hardcodacii.jcmdargs.definitions_arguments_parser_module.exception.DefinitionArgumentsParserException;
-import com.hardcodacii.jcmdargs.definitions_arguments_parser_module.service.CmdLineDefinitionParserService;
-import com.hardcodacii.jcmdargs.definitions_arguments_parser_module.service.RuleService;
+import com.hardcodacii.jcmdargs.module.commons_module.service.ErrorService;
+import com.hardcodacii.jcmdargs.module.definitions_arguments_parser_module.exception.DefinitionArgumentsParserException;
+import com.hardcodacii.jcmdargs.module.definitions_arguments_parser_module.service.CmdLineDefinitionParserService;
+import com.hardcodacii.jcmdargs.module.definitions_arguments_parser_module.service.RuleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
