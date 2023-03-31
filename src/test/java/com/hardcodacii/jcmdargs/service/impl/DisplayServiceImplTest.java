@@ -10,10 +10,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 class DisplayServiceImplTest {
-
-	@Autowired
-	private DisplayService service;
-
 	@Test
 	void infoLn() {
 	}
