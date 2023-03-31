@@ -8,6 +8,6 @@ import org.springframework.context.annotation.Configuration;
  */
 
 @Configuration
-@ComponentScan("com.hardcodacii.logsindentation")
+@ComponentScan("com.hardcodacii.logsindentation.service")
 public class ExternalServiceConfig {
 }

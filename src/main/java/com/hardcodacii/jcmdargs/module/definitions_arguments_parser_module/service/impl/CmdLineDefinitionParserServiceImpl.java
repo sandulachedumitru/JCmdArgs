@@ -1,12 +1,12 @@
 package com.hardcodacii.jcmdargs.module.definitions_arguments_parser_module.service.impl;
 
 import com.hardcodacii.jcmdargs.module.commons_module.global.SystemEnvironmentVariable;
-import com.hardcodacii.jcmdargs.module.commons_module.service.DisplayService;
 import com.hardcodacii.jcmdargs.module.commons_module.service.FileIOService;
-import com.hardcodacii.jcmdargs.module.commons_module.service.impl.ErrorServiceImpl;
-import com.hardcodacii.jcmdargs.module.commons_module.service.model.Error;
 import com.hardcodacii.jcmdargs.module.definitions_arguments_parser_module.service.CmdLineDefinitionParserService;
 import com.hardcodacii.jcmdargs.module.definitions_arguments_parser_module.service.model.*;
+import com.hardcodacii.logsindentation.service.DisplayService;
+import com.hardcodacii.logsindentation.service.impl.ErrorServiceImpl;
+import com.hardcodacii.logsindentation.service.model.Error;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +18,7 @@ import java.util.regex.Pattern;
  */
 
 @Service
+
 @RequiredArgsConstructor
 public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionParserService {
 	private final FileIOService fileIOService;

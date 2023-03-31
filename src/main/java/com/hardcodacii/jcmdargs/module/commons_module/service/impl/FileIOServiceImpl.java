@@ -1,9 +1,9 @@
 package com.hardcodacii.jcmdargs.module.commons_module.service.impl;
 
-import com.hardcodacii.jcmdargs.module.commons_module.service.DisplayService;
-import com.hardcodacii.jcmdargs.module.commons_module.service.ErrorService;
 import com.hardcodacii.jcmdargs.module.commons_module.service.FileIOService;
-import com.hardcodacii.jcmdargs.module.commons_module.service.model.Error;
+import com.hardcodacii.logsindentation.service.DisplayService;
+import com.hardcodacii.logsindentation.service.ErrorService;
+import com.hardcodacii.logsindentation.service.model.Error;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -41,8 +41,7 @@ public class FileIOServiceImpl implements FileIOService {
 				displayService.infoLn("[{}] is a file.", filePathStr);
 				fileExists = true;
 			}
-		} else
-			errorService.addError(new Error(displayService.errorLn("The file [{}] does not exist.", filePathStr)));
+		} else errorService.addError(new Error(displayService.errorLn("The file [{}] does not exist.", filePathStr)));
 
 		return fileExists;
 	}
