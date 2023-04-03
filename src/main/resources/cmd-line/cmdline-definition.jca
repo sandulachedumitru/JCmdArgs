@@ -33,3 +33,5 @@ argument={Logs.txt,#}
 
 command=clone
 #command=git
+#command=#--dfdf
+#command={#--dfdf,clone}

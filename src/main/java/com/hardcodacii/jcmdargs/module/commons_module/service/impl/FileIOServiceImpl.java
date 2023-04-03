@@ -1,6 +1,7 @@
 package com.hardcodacii.jcmdargs.module.commons_module.service.impl;
 
 import com.hardcodacii.jcmdargs.module.commons_module.service.FileIOService;
+import com.hardcodacii.jcmdargs.module.commons_module.service.model.PathType;
 import com.hardcodacii.logsindentation.service.DisplayService;
 import com.hardcodacii.logsindentation.service.ErrorService;
 import com.hardcodacii.logsindentation.service.model.Error;
@@ -10,10 +11,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.*;
 
 /**
  * @author Dumitru Săndulache (sandulachedumitru@hotmail.com)
@@ -26,24 +24,39 @@ public class FileIOServiceImpl implements FileIOService {
 	private final ErrorService errorService;
 
 	@Override
-	public boolean fileExists(String path) {
-		boolean fileExists = false;
+	public PathType checkPath(String path) {
+		if (path == null || path.trim().equals("")) {
+			errorService.addError(new Error(displayService.errorLn("[{}] is null or empty string.", path)));
+			return PathType.NOT_EXIST;
+		}
 
-		var filePath = Paths.get(path);
-		var filePathStr = filePath.getFileName().toString();
-		if (Files.exists(filePath, LinkOption.NOFOLLOW_LINKS)) {
-			displayService.infoLn("The file/directory [{}] exists.", filePathStr);
-			// check whether it is a file or a directory
-			if (Files.isDirectory(filePath, LinkOption.NOFOLLOW_LINKS)) {
-				errorService.addError(new Error(displayService.errorLn("[{}] is a directory. Need a file.", filePathStr)));
-				//if directory then stop app
+		try {
+			var filePath = Paths.get(path);
+			var filePathStr = filePath.getFileName().toString();
+			if (Files.exists(filePath, LinkOption.NOFOLLOW_LINKS)) {
+				displayService.infoLn("The file/folder [{}] exists.", filePathStr);
+				// check whether it is a file or a directory
+				if (Files.isDirectory(filePath, LinkOption.NOFOLLOW_LINKS)) {
+					displayService.errorLn("\t[{}] is a folder", filePathStr);
+					return PathType.FOLDER;
+				} else {
+					displayService.infoLn("\t[{}] is a file.", filePathStr);
+					return PathType.FILE;
+				}
 			} else {
-				displayService.infoLn("[{}] is a file.", filePathStr);
-				fileExists = true;
+				errorService.addError(new Error(displayService.errorLn("The file/folder [{}] does not exist.", filePathStr)));
+				return PathType.NOT_EXIST;
 			}
-		} else errorService.addError(new Error(displayService.errorLn("The file [{}] does not exist.", filePathStr)));
+		} catch (Exception e) {
+			errorService.addError(new Error(displayService.errorLn("There was an exception when trying to access the resource/path [{}].", path)));
+			e.printStackTrace();
+			return PathType.NOT_EXIST;
+		}
+	}
 
-		return fileExists;
+	@Override
+	public boolean fileExists(String path) {
+		return checkPath(path) == PathType.FILE;
 	}
 
 	@Override
@@ -53,6 +66,23 @@ public class FileIOServiceImpl implements FileIOService {
 			return fileExists(resource.getFile().getPath());
 		} catch (IOException e) {
 			errorService.addError(new Error(displayService.errorLn("There was an exception when trying to access the file [{}].", path)));
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	@Override
+	public boolean folderExists(String path) {
+		return checkPath(path) == PathType.FOLDER;
+	}
+
+	@Override
+	public boolean folderExistsInResources(String path) {
+		Resource resource = new ClassPathResource(path);
+		try {
+			return folderExists(resource.getFile().getPath());
+		} catch (IOException e) {
+			errorService.addError(new Error(displayService.errorLn("There was an exception when trying to access the folder [{}].", path)));
 			e.printStackTrace();
 			return false;
 		}
@@ -113,5 +143,10 @@ public class FileIOServiceImpl implements FileIOService {
 			e.printStackTrace();
 			return "";
 		}
+	}
+
+	@Override
+	public String toUnixPath(Path path) {
+		return path.toString().replace("\\", "/");
 	}
 }

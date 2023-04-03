@@ -18,7 +18,6 @@ import java.util.regex.Pattern;
  */
 
 @Service
-
 @RequiredArgsConstructor
 public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionParserService {
 	private final FileIOService fileIOService;

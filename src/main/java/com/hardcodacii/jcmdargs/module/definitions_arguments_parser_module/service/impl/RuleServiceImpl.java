@@ -1,5 +1,6 @@
 package com.hardcodacii.jcmdargs.module.definitions_arguments_parser_module.service.impl;
 
+import com.hardcodacii.jcmdargs.module.commons_module.global.StringUtils;
 import com.hardcodacii.jcmdargs.module.commons_module.global.SystemEnvironmentVariable;
 import com.hardcodacii.jcmdargs.module.definitions_arguments_parser_module.service.RuleService;
 import com.hardcodacii.jcmdargs.module.definitions_arguments_parser_module.service.model.Definition;
@@ -125,6 +126,9 @@ public class RuleServiceImpl implements RuleService {
 			command
 				- IF SPECIFIED IN allowed_arguments_order CHECK THE NUMBER OF command DEFINITION, MUST BE == 1 ??  ----> THIS RULE IS DETECTED IN allowed_arguments_order RULES
 				- CHECK IF THE COMMAND HAVE MORE THAN 1 INSTANCE
+				- CHECK IF THE COMMAND IS INSTANCE OF DefinitionNonOption
+				- CHECK IF THE COMMAND HAS ONLY 1 VALUE (ex: command={git,clone} (wrong), command=clone (good))
+				- CHECK IF THE COMMAND IS WELL FORMATTED (ex: command=#--dfdf (wrong), command=clone (good))
 		 */
 		if (allowedArgumentsOrderRules(definitionsMap))
 			displayService.infoLn("Applying [{}] rules: SUCCESSFUL", ALLOWED_ARGUMENTS_ORDER.getArgumentCode());
@@ -351,28 +355,60 @@ public class RuleServiceImpl implements RuleService {
 			// CHECK IF OPTIONS DEFINITION, IF MORE THAN 1, HAVE 2 FORM: LONG OR SHORT (ex: {--help, -h})
 			var LONG = environment.TOKEN_SPECIAL_CHAR_OPTION_PREFIX_LONG;
 			var SHORT = environment.TOKEN_SPECIAL_CHAR_OPTION_PREFIX_SHORT.toString();
-			var foundLongAndShort = false;
 
-			// format, must start with -- or -
+			// format, must start with -- or -, but must be followed by option name
+			// if size = 2, one must be long and the other must be short
 			if (optsDefinitionsList.size() == TWO) {
 				var optDef1 = optsDefinitionsList.get(ZERO);
 				var optDef2 = optsDefinitionsList.get(ONE);
 
-				if ((optDef1.startsWith(LONG) && optDef2.startsWith(SHORT)) || (optDef1.startsWith(SHORT) && optDef2.startsWith(LONG))) {
-					foundLongAndShort = true;
+				var cond1 = optDef1.startsWith(LONG) && optDef2.startsWith(SHORT);
+				var cond2 = optDef1.startsWith(SHORT) && optDef2.startsWith(LONG);
+				if (cond1 || cond2) {
+					var nameError = false;
+					if (cond1) {
+						var hasNameLong = optDef1.replaceFirst(LONG, "").length() == 0;
+						var hasNameShort = optDef2.replaceFirst(SHORT, "").length() == 0;
+						if (hasNameLong || hasNameShort) {
+							haveError = true;
+							nameError = true;
+						}
+					} else {
+						var hasNameLong = optDef1.replaceFirst(SHORT, "").length() == 0;
+						var hasNameShort = optDef2.replaceFirst(LONG, "").length() == 0;
+						if (hasNameLong || hasNameShort) {
+							haveError = true;
+							nameError = true;
+						}
+					}
+					if (nameError)
+						errorService.addError(new Error(displayService.errorLn("The options must be prefixed with [{}] and [{}] and must followed by a name (ex: {--help, -h}). Found: [{},{}]", LONG, SHORT, optDef1, optDef2)));
 				} else {
 					errorService.addError(new Error(displayService.errorLn("The options must be prefixed with [{}] and [{}] (ex: {--help, -h}). Found: [{},{}]", LONG, SHORT, optDef1, optDef2)));
 					haveError = true;
 				}
 			} else {
 				// optsDefinitionsList.size() == 1
+				var nameError = false;
 				var optDef = optsDefinitionsList.get(ZERO);
-				if (optDef.startsWith(LONG) || optDef.startsWith(SHORT)) {
-					foundLongAndShort = true;
+				if (optDef.startsWith(LONG)) {
+					var hasNameLong = optDef.replaceFirst(LONG, "").length() == 0;
+					if (hasNameLong) {
+						haveError = true;
+						nameError = true;
+					}
+				} else if (optDef.startsWith(SHORT)) {
+					var hasNameShort = optDef.replaceFirst(SHORT, "").length() == 0;
+					if (hasNameShort) {
+						haveError = true;
+						nameError = true;
+					}
 				} else {
 					errorService.addError(new Error(displayService.errorLn("The options must be prefixed with [{}] or [{}] (ex: {--help} or {-h}). Found: [{}]", LONG, SHORT, optDef)));
 					haveError = true;
 				}
+				if (nameError)
+					errorService.addError(new Error(displayService.errorLn("The options must be prefixed with [{}] and [{}] and must followed by a name (ex: {--help, -h}). Found: [{}]", LONG, SHORT, optDef)));
 			}
 
 			// CHECK IF THE OPTIONS HAVE DUPLICATES
@@ -397,6 +433,9 @@ public class RuleServiceImpl implements RuleService {
 		command
 			- IF SPECIFIED IN allowed_arguments_order CHECK THE NUMBER OF command DEFINITION, MUST BE == 1 ??  ----> THIS RULE IS DETECTED IN allowed_arguments_order RULES
 			- CHECK IF THE COMMAND HAVE MORE THAN 1 INSTANCE
+			- CHECK IF THE COMMAND IS INSTANCE OF DefinitionNonOption
+			- CHECK IF THE COMMAND HAS ONLY 1 VALUE (ex: command={git,clone} (wrong), command=clone (good))
+			- CHECK IF THE COMMAND IS WELL FORMATTED (ex: command=#--dfdf (wrong), command=clone (good))
 	 */
 	private boolean commandRules(Map<DefinitionType, List<Definition>> definitionsMap) {
 		if (definitionsMap == null) {
@@ -413,6 +452,27 @@ public class RuleServiceImpl implements RuleService {
 		var cmdDefinitionList = definitionsMap.get(COMMAND);
 		if (cmdDefinitionList.size() != ONE) {
 			errorService.addError(new Error(displayService.errorLn("[{}] have more than 1 definition per definition file. Found [{}]: [{}]", COMMAND.getArgumentCode(), cmdDefinitionList.size(), cmdDefinitionList)));
+			return FAILED;
+		}
+
+		// CHECK IF THE COMMAND IS INSTANCE OF DefinitionNonOption
+		var cmdDef = cmdDefinitionList.get(ZERO);
+		if (!(cmdDef instanceof DefinitionNonOption)) {
+			errorService.addError(new Error(displayService.errorLn("[{}] must be of [DefinitionNonOption] type, but found [{}]", COMMAND.getArgumentCode(), cmdDef.getClass().getSimpleName())));
+			return FAILED;
+		}
+
+		// CHECK IF THE COMMAND HAS ONLY 1 VALUE (ex: command={git,clone} (wrong), command=clone (good))
+		var cmdValueList = ((DefinitionNonOption) cmdDef).getPossibleValues();
+		if (cmdValueList.size() != ONE) {
+			errorService.addError(new Error(displayService.errorLn("[{}] must have only 1 value, but found [{}]: {}", COMMAND.getArgumentCode(), cmdValueList.size(), cmdValueList)));
+			return FAILED;
+		}
+
+		// CHECK IF THE COMMAND IS WELL FORMATTED (ex: command=#--dfdf (wrong), command=clone (good))
+		var cmdValue = cmdValueList.get(ZERO);
+		if (!(StringUtils.startWithAlpha(cmdValue) && StringUtils.containsOnlyAlphaNumeric(cmdValue))) {
+			errorService.addError(new Error(displayService.errorLn("[{}] value must begin with a letter followed by alphanumeric characters, but found [{}]", COMMAND.getArgumentCode(), cmdValue)));
 			return FAILED;
 		}
 

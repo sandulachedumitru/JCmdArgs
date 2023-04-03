@@ -1,7 +1,7 @@
 cmdline:
   file:
-    path-to-resources: /cmd-line/
-    path-to-help-files: /help-files/ # src/main/resources/cmd-line/help-files
+    path-to-resources: cmd-line/
+    path-to-help-files: help-files/ # src/main/resources/cmd-line/help-files
     definition-file: cmdline-definition.jca
     default-input-file: default-input-file.txt
     default-output-file: default-output-file.txt

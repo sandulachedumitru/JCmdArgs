@@ -6,11 +6,12 @@ import com.hardcodacii.jcmdargs.module.definitions_arguments_parser_module.servi
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author Dumitru Săndulache (sandulachedumitru@hotmail.com)
  */
 
 public interface ResourcesGeneratorService {
-	Optional<Boolean> generateResources(Map<DefinitionType, List<Definition>> definitionsMap);
+	Optional<Set<String>> generateResources(Map<DefinitionType, List<Definition>> definitionsMap);
 }
