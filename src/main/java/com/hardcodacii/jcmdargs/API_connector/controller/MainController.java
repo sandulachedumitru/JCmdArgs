@@ -27,6 +27,7 @@ public class MainController {
 	public void defines(String[] args) throws DefinitionArgumentsParserException {
 		errorService.emptyErrorsList();
 
+		displayService.emptyLine();
 		displayService.infoLn("DEFINITIONS PARSER MODULE");
 		var definitionsMapOpt = cmdLineDefinitionParserService.parseDefinitionFile();
 		if (definitionsMapOpt.isEmpty()) {
@@ -35,6 +36,7 @@ public class MainController {
 		}
 		var definitionsMap = definitionsMapOpt.get();
 
+		displayService.emptyLine();
 		displayService.infoLn("DEFINITIONS RULES MODULE");
 		var rulesOfDefinitionOpt = ruleService.applyRules(definitionsMap);
 		if (rulesOfDefinitionOpt.isEmpty() || !rulesOfDefinitionOpt.get()) {
@@ -42,6 +44,7 @@ public class MainController {
 			throw new RulesException("Rules service error");
 		}
 
+		displayService.emptyLine();
 		displayService.infoLn("RESOURCES GENERATOR MODULE");
 		var generatedResourcesOpt = genResService.generateResources((definitionsMap));
 		if (generatedResourcesOpt.isEmpty()) {
@@ -49,6 +52,7 @@ public class MainController {
 			throw new ResourcesGeneratorException("Resources generator service error");
 		}
 
+		displayService.emptyLine();
 		displayService.infoLn("DISPLAY ERRORS");
 		errorService.displayErrors();
 		if (errorService.getErrors().size() > 0) {

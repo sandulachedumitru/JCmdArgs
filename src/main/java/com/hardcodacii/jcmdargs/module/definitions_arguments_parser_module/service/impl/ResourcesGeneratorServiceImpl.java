@@ -30,9 +30,6 @@ public class ResourcesGeneratorServiceImpl implements ResourcesGeneratorService 
 	private final SystemEnvironmentVariable environment;
 	private final FileIOService fileIOService;
 
-	private final static boolean FAILED = false;
-	private final static boolean SUCCESSFUL = true;
-
 	@Override
 	public Optional<Set<String>> generateResources(Map<DefinitionType, List<Definition>> definitionsMap) {
 		if (definitionsMap == null || definitionsMap.isEmpty()) {
@@ -40,6 +37,7 @@ public class ResourcesGeneratorServiceImpl implements ResourcesGeneratorService 
 			return Optional.empty();
 		}
 
+		// CREATE FOLDER FOR HELP FILES
 		var helpFolder = environment.PATH_TO_RESOURCES + environment.PATH_TO_HELP_FILES;
 		try {
 			var path = Path.of(helpFolder);
@@ -49,7 +47,8 @@ public class ResourcesGeneratorServiceImpl implements ResourcesGeneratorService 
 			displayService.infoLn("Failed to create folder: [{}] -> [{}]", helpFolder, e.getMessage());
 		}
 
-		Set<String>  helpFileName = new HashSet<>();
+		// IDENTIFY WHAT HELP FILES SHOULD BE CREATED
+		Set<String> helpFileName = new HashSet<>();
 		for (var key : definitionsMap.keySet()) {
 			if (key == DefinitionType.OPTION) {
 				for (var defOpt : definitionsMap.get(key)) {
@@ -66,8 +65,8 @@ public class ResourcesGeneratorServiceImpl implements ResourcesGeneratorService 
 							optShort = opt.replaceFirst(optPrefixShort, "");
 						}
 					}
-					if (! optLong.trim().equals("")) helpFileName.add(optLong);
-					else if (! optShort.trim().equals("")) helpFileName.add(optShort);
+					if (!optLong.trim().equals("")) helpFileName.add(optLong);
+					else if (!optShort.trim().equals("")) helpFileName.add(optShort);
 				}
 			} else if (key == DefinitionType.COMMAND) {
 				for (var defCmd : definitionsMap.get(key)) {
@@ -76,7 +75,20 @@ public class ResourcesGeneratorServiceImpl implements ResourcesGeneratorService 
 				}
 			}
 		}
-		displayService.infoLn("Created help file for {}", helpFileName);
+
+		// CREATE HELP FILE
+		// check if the help file exist in folder, and if yes than skip it (do not override)
+		for (var file : helpFileName) {
+			var helpFile = helpFolder + file + ".help";
+			displayService.infoLn(environment.LOG_SECTION_DELIMITER_MINUS);
+			displayService.infoLn(" Check if the [{}] file exist ...", helpFile);
+			if (fileIOService.fileExists(helpFile)) {
+				displayService.warningLn("Because [{}] exists, it will be skipped", helpFile);
+			} else {
+				displayService.infoLn(" Create and write to [{}] ...", helpFile);
+				fileIOService.writeStringToFile(helpFile, "replace this line with real help for [" + helpFile + "]");
+			}
+		}
 
 		return helpFileName.isEmpty() ? Optional.empty() : Optional.of(helpFileName);
 	}

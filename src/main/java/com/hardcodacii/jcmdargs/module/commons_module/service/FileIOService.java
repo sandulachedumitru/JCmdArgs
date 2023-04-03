@@ -19,9 +19,9 @@ public interface FileIOService {
 
 	boolean folderExistsInResources(String path);
 
-	boolean writeStringToFile(String str);
+	boolean writeStringToFile(String path, String content);
 
-	boolean writeStringToFileInResources(String str);
+	boolean writeStringToFileInResources(String path, String content);
 
 	String readStringFromFile(String path);
 

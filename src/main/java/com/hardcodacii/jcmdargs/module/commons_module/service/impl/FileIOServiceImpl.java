@@ -34,17 +34,16 @@ public class FileIOServiceImpl implements FileIOService {
 			var filePath = Paths.get(path);
 			var filePathStr = filePath.getFileName().toString();
 			if (Files.exists(filePath, LinkOption.NOFOLLOW_LINKS)) {
-				displayService.infoLn("The file/folder [{}] exists.", filePathStr);
 				// check whether it is a file or a directory
 				if (Files.isDirectory(filePath, LinkOption.NOFOLLOW_LINKS)) {
-					displayService.errorLn("\t[{}] is a folder", filePathStr);
+					displayService.infoLn("\t[{}] is a folder and exists", filePathStr);
 					return PathType.FOLDER;
 				} else {
-					displayService.infoLn("\t[{}] is a file.", filePathStr);
+					displayService.infoLn("\t[{}] is a file and exists", filePathStr);
 					return PathType.FILE;
 				}
 			} else {
-				errorService.addError(new Error(displayService.errorLn("The file/folder [{}] does not exist.", filePathStr)));
+				displayService.infoLn("The file/folder [{}] does not exist.", filePathStr);
 				return PathType.NOT_EXIST;
 			}
 		} catch (Exception e) {
@@ -89,12 +88,12 @@ public class FileIOServiceImpl implements FileIOService {
 	}
 
 	@Override
-	public boolean writeStringToFile(String path) {
+	public boolean writeStringToFile(String path, String content) {
 		var filePath = Paths.get(path);
 		var isSuccessfulWriting = false;
 
 		try {
-			Files.writeString(filePath, path, StandardOpenOption.CREATE);
+			Files.writeString(filePath, content, StandardOpenOption.CREATE);
 			isSuccessfulWriting = true;
 			displayService.infoLn("Successful write to file [{}].", filePath);
 		} catch (IOException ioe) {
@@ -106,10 +105,10 @@ public class FileIOServiceImpl implements FileIOService {
 	}
 
 	@Override
-	public boolean writeStringToFileInResources(String path) {
+	public boolean writeStringToFileInResources(String path, String content) {
 		Resource resource = new ClassPathResource(path);
 		try {
-			return writeStringToFile(resource.getFile().getPath());
+			return writeStringToFile(resource.getFile().getPath(), content);
 		} catch (IOException e) {
 			errorService.addError(new Error(displayService.errorLn("There was an exception when trying to access the file [{}].", path)));
 			e.printStackTrace();
