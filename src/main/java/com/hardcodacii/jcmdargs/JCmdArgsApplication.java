@@ -7,6 +7,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import java.io.FileNotFoundException;
+
 @SpringBootApplication
 @RequiredArgsConstructor
 public class JCmdArgsApplication implements CommandLineRunner {
@@ -17,7 +19,12 @@ public class JCmdArgsApplication implements CommandLineRunner {
 	}
 
 	@Override
-	public void run(String... args) throws DefinitionArgumentsParserException {
-		mainController.defines(args);
+	public void run(String... args) throws DefinitionArgumentsParserException, FileNotFoundException {
+		if (args.length == 0) {
+			System.out.println("Need a file path as argument");
+			return;
+		}
+		var file = args[0];
+		mainController.getDefinitionsFromFile(file);
 	}
 }

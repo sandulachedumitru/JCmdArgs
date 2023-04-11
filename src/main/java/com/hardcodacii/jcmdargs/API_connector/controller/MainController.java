@@ -1,5 +1,6 @@
 package com.hardcodacii.jcmdargs.API_connector.controller;
 
+import com.hardcodacii.jcmdargs.module.commons_module.service.FileIOService;
 import com.hardcodacii.jcmdargs.module.definitions_arguments_parser_module.exception.DefinitionArgumentsParserException;
 import com.hardcodacii.jcmdargs.module.definitions_arguments_parser_module.exception.ResourcesGeneratorException;
 import com.hardcodacii.jcmdargs.module.definitions_arguments_parser_module.exception.RulesException;
@@ -8,8 +9,12 @@ import com.hardcodacii.jcmdargs.module.definitions_arguments_parser_module.servi
 import com.hardcodacii.jcmdargs.module.definitions_arguments_parser_module.service.RuleService;
 import com.hardcodacii.logsindentation.service.DisplayService;
 import com.hardcodacii.logsindentation.service.ErrorService;
+import com.hardcodacii.logsindentation.service.model.Error;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.io.FileNotFoundException;
+import java.util.Optional;
 
 /**
  * @author Sandulache Dumitru (sandulachedumitru@hotmail.com)
@@ -23,13 +28,32 @@ public class MainController {
 	private final ErrorService errorService;
 	private final ResourcesGeneratorService genResService;
 	private final DisplayService displayService;
+	private final FileIOService fileIOService;
 
-	public void defines(String[] args) throws DefinitionArgumentsParserException {
+	public void getDefinitionsFromFile(String definitionsFile) throws DefinitionArgumentsParserException, FileNotFoundException {
 		errorService.emptyErrorsList();
 
+		// CHECKING FILE
+		displayService.infoLn("CHECKING FILE");
+		displayService.infoLn("============-");
+		var fileExists = fileIOService.fileExists(definitionsFile);
+		displayService.emptyLine();
+
+		// check if file exists
+		displayService.infoLn("CHECK IF FILE EXISTS");
+		displayService.infoLn("=============================");
+		if (! fileExists) {
+			var log = displayService.errorLn("File [{}] doesn't existS.", definitionsFile);
+			errorService.addError(new Error(log));
+			throw new FileNotFoundException(log);
+		}
+		displayService.infoLn("File [{}] existS.", definitionsFile);
+		displayService.emptyLine();
+
+		// FLOW OF DEFINITIONS
 		displayService.emptyLine();
 		displayService.infoLn("DEFINITIONS PARSER MODULE");
-		var definitionsMapOpt = cmdLineDefinitionParserService.parseDefinitionFile();
+		var definitionsMapOpt = cmdLineDefinitionParserService.parseDefinitionFile(definitionsFile);
 		if (definitionsMapOpt.isEmpty()) {
 			errorService.displayErrors();
 			throw new DefinitionArgumentsParserException("Parser service error");
@@ -46,7 +70,7 @@ public class MainController {
 
 		displayService.emptyLine();
 		displayService.infoLn("RESOURCES GENERATOR MODULE");
-		var generatedResourcesOpt = genResService.generateResources((definitionsMap));
+		var generatedResourcesOpt = genResService.generateResources(definitionsFile, definitionsMap);
 		if (generatedResourcesOpt.isEmpty()) {
 			errorService.displayErrors();
 			throw new ResourcesGeneratorException("Resources generator service error");

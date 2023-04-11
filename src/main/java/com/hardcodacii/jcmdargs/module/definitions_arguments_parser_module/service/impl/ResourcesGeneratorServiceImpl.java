@@ -31,7 +31,7 @@ public class ResourcesGeneratorServiceImpl implements ResourcesGeneratorService 
 	private final FileIOService fileIOService;
 
 	@Override
-	public Optional<Set<String>> generateResources(Map<DefinitionType, List<Definition>> definitionsMap) {
+	public Optional<Set<String>> generateResources(String pathToDefinitionFile, Map<DefinitionType, List<Definition>> definitionsMap) {
 		if (definitionsMap == null || definitionsMap.isEmpty()) {
 			errorService.addError(new Error(displayService.errorLn("definitions map [{}] si null or empty", definitionsMap)));
 			return Optional.empty();
@@ -76,7 +76,7 @@ public class ResourcesGeneratorServiceImpl implements ResourcesGeneratorService 
 			}
 		}
 
-		// CREATE HELP FILE
+		// CREATE HELP FILES
 		// check if the help file exist in folder, and if yes than skip it (do not override)
 		for (var file : helpFileName) {
 			var helpFile = helpFolder + file + ".help";
@@ -89,6 +89,13 @@ public class ResourcesGeneratorServiceImpl implements ResourcesGeneratorService 
 				fileIOService.writeStringToFile(helpFile, "replace this line with real help for [" + helpFile + "]");
 			}
 		}
+
+		// COPY DEFINITION fILE INTO HELP FOLDER
+		var toFile = environment.PATH_TO_RESOURCES + environment.FILE_DEFINITION;;
+		if (pathToDefinitionFile.equals("")) {
+			displayService.warningLn("Definitions file [{}] cannot be copied in [{}] folder because the name of origin file is empty", pathToDefinitionFile, toFile);
+		}
+		fileIOService.copyFile(pathToDefinitionFile, toFile);
 
 		return helpFileName.isEmpty() ? Optional.empty() : Optional.of(helpFileName);
 	}

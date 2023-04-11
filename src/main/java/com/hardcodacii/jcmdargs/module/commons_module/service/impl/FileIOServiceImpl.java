@@ -148,4 +148,21 @@ public class FileIOServiceImpl implements FileIOService {
 	public String toUnixPath(Path path) {
 		return path.toString().replace("\\", "/");
 	}
+
+	@Override
+	public boolean copyFile(String sourceFile, String targetFile) {
+		var pathSource = Path.of(sourceFile);
+		var pathTarget = Path.of(targetFile);
+
+		try {
+			Files.copy(pathSource, pathTarget, StandardCopyOption.REPLACE_EXISTING);
+		} catch (IOException e) {
+			errorService.addError(new Error(displayService.errorLn("There was an exception when trying to copy from file [{}] to file [[]].", sourceFile, targetFile)));
+			e.printStackTrace();
+			return false;
+		}
+
+		displayService.infoLn("Successful copy from file [{}] to file [{}].", sourceFile, targetFile);
+		return true;
+	}
 }

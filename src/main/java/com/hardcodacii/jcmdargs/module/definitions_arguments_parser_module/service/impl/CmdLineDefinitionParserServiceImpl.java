@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionParserService {
 	private final FileIOService fileIOService;
-	private final SystemEnvironmentVariable environmentService;
+	private final SystemEnvironmentVariable environment;
 	private final DisplayService displayService;
 	private final ErrorServiceImpl errorService;
 
@@ -29,30 +29,13 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 	private final Map<DefinitionType, List<Definition>> definitionsMap = new HashMap<>();
 
 	@Override
-	public Optional<Map<DefinitionType, List<Definition>>> parseDefinitionFile() {
-		displayService.emptyLine();
-
-		// CHECKING FILE
-		displayService.infoLn("CHECKING FILE");
-		displayService.infoLn("============-");
-		var file = environmentService.PATH_TO_RESOURCES + environmentService.FILE_DEFINITION;
-		var fileExists = fileIOService.fileExistsInResources(file);
-		displayService.emptyLine();
-
-		// RULE: CHECK IF FILE EXISTS
-		displayService.infoLn("RULE --> CHECK IF FILE EXISTS");
-		displayService.infoLn("=============================");
-		if (!fileExists) {
-			errorService.addError(new Error(displayService.errorLn("File [{}] doesn't existS.", file)));
-			return Optional.empty();
-		}
-		displayService.infoLn("File [{}] existS.", file);
+	public Optional<Map<DefinitionType, List<Definition>>> parseDefinitionFile(String definitionsFile) {
 		displayService.emptyLine();
 
 		// READING FROM FILE
 		displayService.infoLn("READING FROM FILE");
 		displayService.infoLn("=================");
-		String fileContent = fileIOService.readStringFromFileInResources(file);
+		String fileContent = fileIOService.readStringFromFile(definitionsFile);
 		displayService.emptyLine();
 
 		// LINE PROCESSOR
@@ -81,11 +64,11 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 		displayService.infoLn("RULE --> CHECK IF DEFINITIONS FILE HAVE BEEN FOUND");
 		displayService.infoLn("==================================================");
 		if (parsedDefinitionsMap.size() == 0) {
-			errorService.addError(new Error(displayService.errorLn("No definition found in file [{}]", file)));
+			errorService.addError(new Error(displayService.errorLn("No definition found in file [{}]", definitionsFile)));
 			displayService.emptyLine();
 			return Optional.empty();
 		}
-		displayService.infoLn("Definition found in the [{}] file", file);
+		displayService.infoLn("Definition found in the [{}] file", definitionsFile);
 		displayService.emptyLine();
 
 		// MAPPING OF DEFINITIONS
@@ -106,10 +89,10 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 	}
 
 	private void lineProcessor(String line) {
-		var comment = environmentService.TOKEN_SPECIAL_CHAR_SHARP.toString();
+		var comment = environment.TOKEN_SPECIAL_CHAR_SHARP.toString();
 		if (line == null || line.equals("") || line.startsWith(comment)) return;
 
-		var regex = environmentService.REGEX_DEFINITION_LINE_ARGUMENT_MIX;
+		var regex = environment.REGEX_DEFINITION_LINE_ARGUMENT_MIX;
 		var pattern = Pattern.compile(regex);
 		var matcher = pattern.matcher(line);
 		int NUMBER_OF_GROUPS = 5 + 1;
@@ -239,17 +222,17 @@ public class CmdLineDefinitionParserServiceImpl implements CmdLineDefinitionPars
 	}
 
 	private DefinitionPropertiesTokenizedTransporter tokenize(String properties) {
-		var SQUARE_BRACKET_LEFT = environmentService.TOKEN_SPECIAL_CHAR_SQUARE_BRACKET_LEFT;
-		var SQUARE_BRACKET_RIGHT = environmentService.TOKEN_SPECIAL_CHAR_SQUARE_BRACKET_RIGHT;
-		var CURLY_BRACES_LEFT = environmentService.TOKEN_SPECIAL_CHAR_CURLY_BRACES_LEFT;
-		var CURLY_BRACES_RIGHT = environmentService.TOKEN_SPECIAL_CHAR_CURLY_BRACES_RIGHT;
-		var EQUAL = environmentService.TOKEN_SPECIAL_CHAR_EQUAL;
-		var COMMA = environmentService.TOKEN_SPECIAL_CHAR_COMMA;
-		var OPTION_PREFIX_SHORT = environmentService.TOKEN_SPECIAL_CHAR_OPTION_PREFIX_SHORT;
-		var OPTION_PREFIX_LONG = environmentService.TOKEN_SPECIAL_CHAR_OPTION_PREFIX_LONG;
-		var SHARP = environmentService.TOKEN_SPECIAL_CHAR_SHARP;
-		var EMPTY_TEXT = environmentService.TOKEN_GLOBAL_EMPTY_TEXT;
-		var SINGLE_OPTION_ALLOWED = environmentService.TOKEN_SPECIAL_CHAR_SINGLE_OPTION_ALLOWED;
+		var SQUARE_BRACKET_LEFT = environment.TOKEN_SPECIAL_CHAR_SQUARE_BRACKET_LEFT;
+		var SQUARE_BRACKET_RIGHT = environment.TOKEN_SPECIAL_CHAR_SQUARE_BRACKET_RIGHT;
+		var CURLY_BRACES_LEFT = environment.TOKEN_SPECIAL_CHAR_CURLY_BRACES_LEFT;
+		var CURLY_BRACES_RIGHT = environment.TOKEN_SPECIAL_CHAR_CURLY_BRACES_RIGHT;
+		var EQUAL = environment.TOKEN_SPECIAL_CHAR_EQUAL;
+		var COMMA = environment.TOKEN_SPECIAL_CHAR_COMMA;
+		var OPTION_PREFIX_SHORT = environment.TOKEN_SPECIAL_CHAR_OPTION_PREFIX_SHORT;
+		var OPTION_PREFIX_LONG = environment.TOKEN_SPECIAL_CHAR_OPTION_PREFIX_LONG;
+		var SHARP = environment.TOKEN_SPECIAL_CHAR_SHARP;
+		var EMPTY_TEXT = environment.TOKEN_GLOBAL_EMPTY_TEXT;
+		var SINGLE_OPTION_ALLOWED = environment.TOKEN_SPECIAL_CHAR_SINGLE_OPTION_ALLOWED;
 
 		if (properties == null || properties.trim().equals(EMPTY_TEXT)) return null;
 

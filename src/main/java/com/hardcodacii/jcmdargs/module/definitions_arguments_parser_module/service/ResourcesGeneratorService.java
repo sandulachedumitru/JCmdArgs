@@ -13,5 +13,5 @@ import java.util.Set;
  */
 
 public interface ResourcesGeneratorService {
-	Optional<Set<String>> generateResources(Map<DefinitionType, List<Definition>> definitionsMap);
+	Optional<Set<String>> generateResources(String pathToDefinitionFile, Map<DefinitionType, List<Definition>> definitionsMap);
 }

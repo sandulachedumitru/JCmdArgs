@@ -28,4 +28,6 @@ public interface FileIOService {
 	String readStringFromFileInResources(String path);
 
 	String toUnixPath(Path path);
+
+	boolean copyFile(String fromFile, String toFile);
 }
