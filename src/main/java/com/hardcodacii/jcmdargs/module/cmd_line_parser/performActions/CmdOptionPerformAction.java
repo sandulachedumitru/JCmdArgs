@@ -1,4 +1,4 @@
-package com.hardcodacii.jcmdargs.module.cmdLine.performActions;
+package com.hardcodacii.jcmdargs.module.cmd_line_parser.performActions;
 
 /**
  * @author Dumitru Săndulache (sandulachedumitru@hotmail.com)
