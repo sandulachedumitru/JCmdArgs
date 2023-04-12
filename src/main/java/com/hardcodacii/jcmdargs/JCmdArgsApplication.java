@@ -1,7 +1,7 @@
 package com.hardcodacii.jcmdargs;
 
-import com.hardcodacii.jcmdargs.API_connector.controller.MainController;
-import com.hardcodacii.jcmdargs.module.definitions_arguments_parser_module.exception.DefinitionArgumentsParserException;
+import com.hardcodacii.jcmdargs.API_connector.service.CommandLineService;
+import com.hardcodacii.jcmdargs.module.definitions_file_parser.exception.DefinitionArgumentsParserException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -12,7 +12,7 @@ import java.io.FileNotFoundException;
 @SpringBootApplication
 @RequiredArgsConstructor
 public class JCmdArgsApplication implements CommandLineRunner {
-	private final MainController mainController;
+	private final CommandLineService commandLineService;
 
 	public static void main(String[] args) {
 		SpringApplication.run(JCmdArgsApplication.class, args);
@@ -25,6 +25,6 @@ public class JCmdArgsApplication implements CommandLineRunner {
 			return;
 		}
 		var file = args[0];
-		mainController.getDefinitionsFromFile(file);
+		commandLineService.getDefinitionsFromFile(file);
 	}
 }
