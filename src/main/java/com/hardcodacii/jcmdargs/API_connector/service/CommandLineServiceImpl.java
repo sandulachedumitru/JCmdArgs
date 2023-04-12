@@ -42,7 +42,7 @@ public class CommandLineServiceImpl implements CommandLineService {
 		// check if file exists
 		displayService.infoLn("CHECK IF FILE EXISTS");
 		displayService.infoLn("=============================");
-		if (! fileExists) {
+		if (!fileExists) {
 			var log = displayService.errorLn("File [{}] doesn't existS.", definitionsFile);
 			errorService.addError(new Error(log));
 			throw new FileNotFoundException(log);

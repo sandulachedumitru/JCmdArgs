@@ -2,11 +2,11 @@ package com.hardcodacii.jcmdargs.module.definitions_file_parser.service.impl;
 
 import com.hardcodacii.jcmdargs.module.commons.global.StringUtils;
 import com.hardcodacii.jcmdargs.module.commons.global.SystemEnvironmentVariable;
-import com.hardcodacii.jcmdargs.module.definitions_file_parser.service.RuleService;
 import com.hardcodacii.jcmdargs.module.definitions_file_parser.model.Definition;
 import com.hardcodacii.jcmdargs.module.definitions_file_parser.model.DefinitionNonOption;
 import com.hardcodacii.jcmdargs.module.definitions_file_parser.model.DefinitionOption;
 import com.hardcodacii.jcmdargs.module.definitions_file_parser.model.DefinitionType;
+import com.hardcodacii.jcmdargs.module.definitions_file_parser.service.RuleService;
 import com.hardcodacii.logsindentation.service.DisplayService;
 import com.hardcodacii.logsindentation.service.ErrorService;
 import com.hardcodacii.logsindentation.service.model.Error;

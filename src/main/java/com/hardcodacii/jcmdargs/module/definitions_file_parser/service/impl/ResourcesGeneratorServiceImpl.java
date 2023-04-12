@@ -2,11 +2,11 @@ package com.hardcodacii.jcmdargs.module.definitions_file_parser.service.impl;
 
 import com.hardcodacii.jcmdargs.module.commons.global.SystemEnvironmentVariable;
 import com.hardcodacii.jcmdargs.module.commons.service.FileIOService;
-import com.hardcodacii.jcmdargs.module.definitions_file_parser.service.ResourcesGeneratorService;
 import com.hardcodacii.jcmdargs.module.definitions_file_parser.model.Definition;
 import com.hardcodacii.jcmdargs.module.definitions_file_parser.model.DefinitionNonOption;
 import com.hardcodacii.jcmdargs.module.definitions_file_parser.model.DefinitionOption;
 import com.hardcodacii.jcmdargs.module.definitions_file_parser.model.DefinitionType;
+import com.hardcodacii.jcmdargs.module.definitions_file_parser.service.ResourcesGeneratorService;
 import com.hardcodacii.logsindentation.service.DisplayService;
 import com.hardcodacii.logsindentation.service.ErrorService;
 import com.hardcodacii.logsindentation.service.model.Error;
@@ -32,13 +32,15 @@ public class ResourcesGeneratorServiceImpl implements ResourcesGeneratorService 
 
 	@Override
 	public Optional<Set<String>> generateResources(String pathToDefinitionFile, Map<DefinitionType, List<Definition>> definitionsMap) {
+		var root = environment.PATH_TO_RESOURCES;
+
 		if (definitionsMap == null || definitionsMap.isEmpty()) {
 			errorService.addError(new Error(displayService.errorLn("definitions map [{}] si null or empty", definitionsMap)));
 			return Optional.empty();
 		}
 
 		// CREATE FOLDER FOR HELP FILES
-		var helpFolder = environment.PATH_TO_RESOURCES + environment.PATH_TO_HELP_FILES;
+		var helpFolder = root + environment.PATH_TO_HELP_FILES;
 		try {
 			var path = Path.of(helpFolder);
 			var dir = Files.createDirectories(path);
@@ -91,11 +93,14 @@ public class ResourcesGeneratorServiceImpl implements ResourcesGeneratorService 
 		}
 
 		// COPY DEFINITION fILE INTO HELP FOLDER
-		var toFile = environment.PATH_TO_RESOURCES + environment.FILE_DEFINITION;;
+		displayService.infoLn(environment.LOG_SECTION_DELIMITER_MINUS);
+		displayService.infoLn("Copy [{}] file into the newly created [{}] folder", pathToDefinitionFile, root);
+
+		var toFile = root + environment.FILE_DEFINITION;
 		if (pathToDefinitionFile.equals("")) {
 			displayService.warningLn("Definitions file [{}] cannot be copied in [{}] folder because the name of origin file is empty", pathToDefinitionFile, toFile);
-		}
-		fileIOService.copyFile(pathToDefinitionFile, toFile);
+		} else
+			fileIOService.copyFile(pathToDefinitionFile, toFile);
 
 		return helpFileName.isEmpty() ? Optional.empty() : Optional.of(helpFileName);
 	}
