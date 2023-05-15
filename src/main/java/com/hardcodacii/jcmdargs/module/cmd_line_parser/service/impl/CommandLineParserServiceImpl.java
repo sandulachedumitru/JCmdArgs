@@ -1,21 +1,17 @@
 package com.hardcodacii.jcmdargs.module.cmd_line_parser.service.impl;
 
-import com.hardcodacii.jcmdargs.module.cmd_line_parser.model.CmdLineArgsActionPerformer;
-import com.hardcodacii.jcmdargs.module.cmd_line_parser.model.CmdLineOptionProperties;
-import com.hardcodacii.jcmdargs.module.cmd_line_parser.model.CmdLineParamInfo;
-import com.hardcodacii.jcmdargs.module.cmd_line_parser.model.CmdLineParamType;
+import com.hardcodacii.jcmdargs.module.cmd_line_parser.model.*;
 import com.hardcodacii.jcmdargs.module.cmd_line_parser.service.CommandLineParserService;
 import com.hardcodacii.jcmdargs.module.commons.global.SystemEnvironmentVariable;
 import com.hardcodacii.jcmdargs.module.definitions_file_parser.model.Definition;
 import com.hardcodacii.jcmdargs.module.definitions_file_parser.model.DefinitionType;
 import com.hardcodacii.logsindentation.service.DisplayService;
+import com.hardcodacii.logsindentation.service.ErrorService;
+import com.hardcodacii.logsindentation.service.model.Error;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Pattern;
 
 /**
@@ -27,9 +23,12 @@ import java.util.regex.Pattern;
 public class CommandLineParserServiceImpl implements CommandLineParserService {
 	private final SystemEnvironmentVariable environment;
 	private final DisplayService displayService;
+	private final ErrorService errorService;
 
 	@Override
 	public Optional<CmdLineArgsActionPerformer> parseCmdLine(String pathToDefinitionsFile, Map<DefinitionType, List<Definition>> definitionsMap) {
+		displayService.infoLn("PARSE THE COMMAND LINE PARAMETERS");
+
 		String[] arguments = {
 				"argument1",
 				"argument2",
@@ -46,8 +45,15 @@ public class CommandLineParserServiceImpl implements CommandLineParserService {
 
 	private void cmdParameterProcessor(String[] args) {
 		// parse the command line parameters
-		displayService.infoLn("PARSE THE COMMAND LINE PARAMETERS");
+		displayService.infoLn("Get parameters info by parsing the command line");
 		var infoList = parseCmdLineParameters(args);
+
+		// Number of occurrences for parameters
+		displayService.infoLn("Number of occurrences for parameter");
+		var occurrences = getDuplicates(infoList);
+		displayService.emptyLine();
+
+		errorService.displayErrors();
 	}
 
 	public List<CmdLineParamInfo> parseCmdLineParameters(String... args) {
@@ -140,5 +146,49 @@ public class CommandLineParserServiceImpl implements CommandLineParserService {
 		}
 
 		return infoList;
+	}
+
+	private Map<CmdLineDuplicates, Integer> getDuplicates(List<CmdLineParamInfo> infoList) {
+		Map<CmdLineDuplicates, Integer> duplicates = new HashMap<>();
+
+		for (var info : infoList) {
+			var dupl = new CmdLineDuplicates();
+
+			// check duplicated options
+			if (info.getType() == CmdLineParamType.OPTION) {
+				var optionName = info.getOptsProperties().getName();
+				dupl.setValue(optionName);
+			}
+
+			// check duplicated command/arguments
+			else {
+				var paramName = info.getExpression();
+				dupl.setValue(paramName);
+			}
+
+			dupl.setType(info.getType());
+
+			if (duplicates.containsKey(dupl)) {
+				var occurrences = duplicates.get(dupl);
+				duplicates.put(dupl, ++occurrences);
+			} else {
+				duplicates.put(dupl, 1);
+			}
+
+		}
+
+		for (var entry : duplicates.entrySet()) {
+			var duplValue = entry.getKey().getValue();
+			var duplType = entry.getKey().getType();
+			var numberOfOccurrences = entry.getValue();
+			displayService.infoLn("[value: {}, type: {}] --> [{}]", duplValue, duplType, numberOfOccurrences);
+
+			if (numberOfOccurrences > 1) {
+				var msg = "Command line parameter: [" + duplValue + ", " + duplType + "] has duplicates: [" + numberOfOccurrences + "]";
+				errorService.addError(new Error(msg));
+			}
+		}
+
+		return duplicates;
 	}
 }
