@@ -1,12 +1,12 @@
 package com.hardcodacii.jcmdargs.module.cmd_line_parser.performActions.parameter;
 
-import com.hardcodacii.jcmdargs.module.cmd_line_parser.performActions.CmdOptionPerformAction;
+import com.hardcodacii.jcmdargs.module.cmd_line_parser.performActions.CmdLinePerformAction;
 
 /**
  * @author Dumitru Săndulache (sandulachedumitru@hotmail.com)
  */
 
-public class Parameter implements CmdOptionPerformAction {
+public class Parameter implements CmdLinePerformAction {
 	private static final Parameter INSTANCE = new Parameter();
 
 	private Parameter() {

@@ -26,5 +26,6 @@ public class JCmdArgsApplication implements CommandLineRunner {
 		}
 		var file = args[0];
 		commandLineService.getDefinitionsFromFile(file);
+		commandLineService.processParametersFromCmdLine(args);
 	}
 }

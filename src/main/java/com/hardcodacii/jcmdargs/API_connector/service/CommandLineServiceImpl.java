@@ -1,5 +1,6 @@
 package com.hardcodacii.jcmdargs.API_connector.service;
 
+import com.hardcodacii.jcmdargs.module.cmd_line_parser.service.CommandLineParserService;
 import com.hardcodacii.jcmdargs.module.commons.service.FileIOService;
 import com.hardcodacii.jcmdargs.module.definitions_file_parser.exception.DefinitionArgumentsParserException;
 import com.hardcodacii.jcmdargs.module.definitions_file_parser.exception.ResourcesGeneratorException;
@@ -23,6 +24,7 @@ import java.io.FileNotFoundException;
 @RequiredArgsConstructor
 public class CommandLineServiceImpl implements CommandLineService {
 	private final CmdLineDefinitionParserService cmdLineDefinitionParserService;
+	private final CommandLineParserService commandLineParserService;
 	private final RuleService ruleService;
 	private final ErrorService errorService;
 	private final ResourcesGeneratorService genResService;
@@ -82,5 +84,10 @@ public class CommandLineServiceImpl implements CommandLineService {
 		if (errorService.getErrors().size() > 0) {
 			throw new DefinitionArgumentsParserException("Defining command line failed with errors");
 		}
+	}
+
+	@Override
+	public void processParametersFromCmdLine(String... args) {
+		commandLineParserService.parseCmdLine(null, null); //TODO
 	}
 }

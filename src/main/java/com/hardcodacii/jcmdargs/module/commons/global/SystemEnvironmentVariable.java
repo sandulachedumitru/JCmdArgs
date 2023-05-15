@@ -40,6 +40,8 @@ public class SystemEnvironmentVariable {
 	public String REGEX_OPTION_LONG;
 	@Value("${cmdline.regex.option.name.short}")
 	public String REGEX_OPTION_SHORT;
+	@Value("${cmdline.regex.option.name.general}")
+	public String REGEX_OPTION_GENERAL;
 	@Value("${cmdline.regex.parameter.file}")
 	public String REGEX_PARAMETER_FILE;
 	@Value("${cmdline.regex.parameter.anything}")

@@ -1,12 +1,12 @@
 package com.hardcodacii.jcmdargs.module.cmd_line_parser.performActions.option;
 
-import com.hardcodacii.jcmdargs.module.cmd_line_parser.performActions.CmdOptionPerformAction;
+import com.hardcodacii.jcmdargs.module.cmd_line_parser.performActions.CmdLinePerformAction;
 
 /**
  * @author Dumitru Săndulache (sandulachedumitru@hotmail.com)
  */
 
-public class Help implements CmdOptionPerformAction {
+public class Help implements CmdLinePerformAction {
 	private static final Help INSTANCE = new Help();
 
 	private Help() {

@@ -8,7 +8,7 @@ import java.io.FileNotFoundException;
  * @author Dumitru Săndulache (sandulachedumitru@hotmail.com)
  */
 
-@FunctionalInterface
 public interface CommandLineService {
 	void getDefinitionsFromFile(String definitionsFile) throws DefinitionArgumentsParserException, FileNotFoundException;
+	void processParametersFromCmdLine(String... args);
 }

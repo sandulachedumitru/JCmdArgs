@@ -5,6 +5,6 @@ package com.hardcodacii.jcmdargs.module.cmd_line_parser.performActions;
  */
 
 @FunctionalInterface
-public interface CmdOptionPerformAction {
+public interface CmdLinePerformAction {
 	void performAction(String str);
 }

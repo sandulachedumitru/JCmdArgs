@@ -1,12 +1,12 @@
 package com.hardcodacii.jcmdargs.module.cmd_line_parser.performActions.option;
 
-import com.hardcodacii.jcmdargs.module.cmd_line_parser.performActions.CmdOptionPerformAction;
+import com.hardcodacii.jcmdargs.module.cmd_line_parser.performActions.CmdLinePerformAction;
 
 /**
  * @author Dumitru Săndulache (sandulachedumitru@hotmail.com)
  */
 
-public class PrintTo implements CmdOptionPerformAction {
+public class PrintTo implements CmdLinePerformAction {
 	private static final PrintTo INSTANCE = new PrintTo();
 
 	private PrintTo() {
