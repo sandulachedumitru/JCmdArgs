@@ -12,6 +12,6 @@ import lombok.ToString;
 @Setter
 @ToString
 public class CmdLineSupportedParam {
-	private CmdLineParamInfo infoList;
+	private CmdLineParamInfo paramInfo;
 	private boolean isSupported = false; // relevant only for cmd options
 }
