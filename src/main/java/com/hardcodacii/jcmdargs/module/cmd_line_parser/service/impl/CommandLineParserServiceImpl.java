@@ -53,6 +53,11 @@ public class CommandLineParserServiceImpl implements CommandLineParserService {
 		var occurrences = getDuplicates(infoList);
 		displayService.emptyLine();
 
+		// check supported parameter and value for options
+		displayService.infoLn("Check supported parameters and values for options");
+		var supported = getSupported(infoList);
+		displayService.emptyLine();
+
 		errorService.displayErrors();
 	}
 
@@ -177,6 +182,7 @@ public class CommandLineParserServiceImpl implements CommandLineParserService {
 
 		}
 
+		// logs
 		for (var entry : duplicates.entrySet()) {
 			var duplValue = entry.getKey().getValue();
 			var duplType = entry.getKey().getType();
@@ -190,5 +196,12 @@ public class CommandLineParserServiceImpl implements CommandLineParserService {
 		}
 
 		return duplicates;
+	}
+
+	private List<CmdLineSupportedParam> getSupported(List<CmdLineParamInfo> infoList) {
+		List<CmdLineSupportedParam> supportedParamList = new ArrayList<>();
+
+
+		return supportedParamList;
 	}
 }
