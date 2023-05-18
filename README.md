@@ -1,7 +1,9 @@
 # JCmdArgs
+
 ## _Java Command Line Arguments Processor_
 
-The engine that parses command-line arguments will look for the definition file that is defined in the application.properties file.
+The engine that parses command-line arguments will look for the definition file that is defined in the
+application.properties file.
 
 ### General form:
 
@@ -36,6 +38,7 @@ arguments_number=[<number>]
 | `arguments_number=`        | `the number of arguments allowed`              |
 
 Example 1:
+
 ```
 {option, command, arguments_number, argument}
 option=!{--help,-h}
@@ -50,6 +53,7 @@ argument=something -> will be ignored because arguments_number==2
 ```
 
 Example 2:
+
 ```
 $ git clone https://github.com/sandulachedumitru/JCmdArgs.git
 {command, arguments_number, argument}
@@ -60,6 +64,7 @@ argument=something -> will be ignored because arguments_number==1
 ```
 
 Example 3:
+
 ```
 $ sudoku --debug=enable -pt SudokuInputFile.txt
 $ sudoku --d=enable --print-to=SudokuLog.log SudokuInputFile.txt
@@ -72,8 +77,8 @@ arguments_number=1
 argument=sudokufile.txt
 ```
 
-
 ### Options Form:
+
 ```
 --option                                    -> option long name
 --option=value
@@ -87,31 +92,34 @@ argument=sudokufile.txt
 ...
 ```
 
-
 ### Options description, user guide (help); ex:
+
 Every option user guide must have an `<option>.help` file with a name that matches the long option name.
 
 Example:
+
 ```
 --help,		-h		-> help.help
 --debug,	-d		-> debug.help
 --print-to,	-pt		-> print-to.help
 ```
 
-
 ### Options/Arguments special symbol
+
 ```
 #       -> mandatory user input
 !       -> single option, other options are not allowed
 ```
 
 ### Arguments form:
+
 ```
 argument=<default value>    -> NOT mandatory; user input OR dafault value
 argument=#                  -> mandatory; user input; no default value provided for argument
 ```
 
 Example 1:
+
 ```
 argument=sudokufile.txt		-> NOT mandatory (because it has default value); user input OR dafault value
 
@@ -122,6 +130,7 @@ $ sudoku --d=enable --print-to=SudokuLog.log
 ```
 
 Example 2:
+
 ```
 argument=#	-> mandatory; user input; no default value provided for argument
 

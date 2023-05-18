@@ -1,13 +1,7 @@
 package com.hardcodacii.jcmdargs.service.impl;
 
-import com.hardcodacii.jcmdargs.service.DisplayService;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Dumitru Săndulache (sandulachedumitru@hotmail.com)
@@ -15,10 +9,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 class DisplayServiceImplTest {
-
-	@Autowired
-	private DisplayService service;
-
 	@Test
 	void infoLn() {
 	}
