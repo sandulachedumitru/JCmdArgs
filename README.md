@@ -1,139 +1,413 @@
 # JCmdArgs
 
-## _Java Command Line Arguments Processor_
+**JCmdArgs is a schema-first command-line interface engine for Java.**
 
-The engine that parses command-line arguments will look for the definition file that is defined in the
-application.properties file.
+Define the syntax, validation rules, positional arguments and user-facing documentation of a CLI in one external `.jca` contract. JCmdArgs compiles that contract into an immutable `CliSpec`, then uses the same model for runtime parsing, diagnostics, help and manual rendering.
 
-### General form:
-
-```
-{option, command, arguments_number, argument} option=[[!]{--<optionLong>,-<optionShort>}[={}]] command=[<command>] argument=[<argument>] arguments_number=[<number>]
-```
-
-```
-{option, command, arguments_number, argument}
-option=[[!]{--<optionLong>,-<optionShort>}[={}]]
-command=[<command>]
-argument=[<argument>]
-arguments_number=[<number>]
+```text
+.jca contract
+     |
+     v
+ JcaCompiler
+     |
+     v
+ immutable CliSpec
+   /      |       \
+  v       v        v
+parse    help     manual
 ```
 
-> **NOTE**: No space character will be allowed inside element
+## Why JCmdArgs?
 
-### Special characters and syntax description
+Many Java CLI libraries define a command line through annotations or programmatic builders. JCmdArgs takes a different approach: the CLI contract lives outside application code.
 
-| Symbol                     | Description                                    |
-|----------------------------|------------------------------------------------|
-| `#`                        | `mandatory user input`                         |
-| `!`                        | `single option, other options are not allowed` |
-| `[]`                       | `is optional`                                  |
-| `{<value1>,<value2>, ...}` | `the list of supported values of the option`   |
-| `{}`                       | `list of variable size`                        |
-| `,`                        | `list values separator`                        |
-| `<something>`              | `replace with real word`                       |
-| `option=`                  | `defines an option`                            |
-| `command=`                 | `defines a command`                            |
-| `argument=`                | `defines an argument`                          |
-| `arguments_number=`        | `the number of arguments allowed`              |
+A single `.jca` file can describe:
 
-Example 1:
+- commands;
+- option aliases;
+- required and standalone options;
+- fixed or free option values;
+- implicit option values;
+- named positional arguments;
+- required, optional and defaulted positional arguments;
+- argument ordering policy;
+- application, command, option and argument documentation.
 
+The compiled model is immutable and can be reused for multiple parses.
+
+## Current baseline
+
+The current Java 21 rewrite provides:
+
+- Java 21;
+- Maven build;
+- zero runtime dependencies;
+- immutable semantic model;
+- `.jca` compiler and semantic validation;
+- structured diagnostics;
+- runtime CLI parser;
+- help renderer;
+- manual renderer;
+- public `JCmdArgs` facade;
+- no Spring dependency;
+- no logging dependency;
+- no implicit filesystem writes.
+
+JUnit is used only for tests.
+
+## Requirements
+
+- JDK 21+
+- Maven, or the included Maven Wrapper
+
+Build and run the test suite:
+
+### Windows PowerShell
+
+```powershell
+.\mvnw.cmd clean test
 ```
-{option, command, arguments_number, argument}
+
+### Linux / macOS
+
+```bash
+./mvnw clean test
+```
+
+## A small `.jca` contract
+
+```properties
+arguments_number=1
+
 option=!{--help,-h}
-option={--debug,-d}={enable,disable}
-option={--print-to,-pt}={Logs.txt,#}
-option={--with-rootPath}={enable,disable}                           -> no short version option
-command=clone
+option={--verbose,-v}
+
+argument=input=#
+
+doc.summary="Example command-line tool."
+doc.option.--help.summary="Show help and exit."
+doc.option.--verbose.summary="Enable verbose output."
+doc.argument.input.summary="Input file to process."
+```
+
+The contract states that:
+
+- `--help` and `-h` are aliases for one standalone option;
+- `--verbose` and `-v` are aliases for one flag;
+- `input` is a required positional argument;
+- help text is defined in the same contract.
+
+See [`examples/minimal.jca`](examples/minimal.jca).
+
+## Representative contract
+
+A more complete example:
+
+```properties
 arguments_number=2
-argument=https://github.com/sandulachedumitru/JCmdArgs.git
-argument=#                                                          -> #: mandatory user input
-argument=something -> will be ignored because arguments_number==2
-```
+allowed_arguments_order={command,option,argument}
 
-Example 2:
-
-```
-$ git clone https://github.com/sandulachedumitru/JCmdArgs.git
-{command, arguments_number, argument}
 command=clone
-arguments_number=1
-argument=#
-argument=something -> will be ignored because arguments_number==1
-```
 
-Example 3:
-
-```
-$ sudoku --debug=enable -pt SudokuInputFile.txt
-$ sudoku --d=enable --print-to=SudokuLog.log SudokuInputFile.txt
-$ sudoku --d=enable --print-to=SudokuLog.log
-{option, arguments_number, argument}
 option=!{--help,-h}
-option={--debug,-d}={enable,disable}
+option={--debug,-d}={disable,enable}
+option={--long-form,-lf}
+option=+{--config,-c}=#
 option={--print-to,-pt}={Logs.txt,#}
-arguments_number=1
-argument=sudokufile.txt
+
+argument=source=#
+argument=destination=repository
+
+doc.summary="Repository clone utility."
+doc.description="""
+Clone a repository into a destination directory using a declarative
+command-line contract.
+"""
+
+doc.command.clone.summary="Clone a repository."
+doc.option.--help.summary="Show help and exit."
+doc.option.--debug.summary="Control debug output."
+doc.option.--long-form.summary="Use the long output form."
+doc.option.--config.summary="Configuration file to use."
+doc.option.--print-to.summary="Write output to a file."
+doc.argument.source.summary="Source repository or directory."
+doc.argument.destination.summary="Destination directory."
 ```
 
-### Options Form:
+See [`examples/clone.jca`](examples/clone.jca).
 
-```
---option                                    -> option long name
---option=value
--o                                          -> option short name
--o=value
---option{(-something)xN}
---option-something1
---option-something1=value
---option-something1-something2
---option-something1-something2=value
-...
-```
+## Java API
 
-### Options description, user guide (help); ex:
+Compile a contract:
 
-Every option user guide must have an `<option>.help` file with a name that matches the long option name.
+```java
+import com.hardcodacii.jcmdargs.JCmdArgs;
 
-Example:
+import java.nio.file.Path;
 
-```
---help,		-h		-> help.help
---debug,	-d		-> debug.help
---print-to,	-pt		-> print-to.help
+var compilation = JCmdArgs.compile(Path.of("examples/clone.jca"));
+
+if (!compilation.success()) {
+    compilation.diagnostics().forEach(System.err::println);
+    return;
+}
+
+var spec = compilation.cliSpec().orElseThrow();
 ```
 
-### Options/Arguments special symbol
+Parse a command line using the compiled model:
 
+```java
+var result = JCmdArgs.parse(
+        spec,
+        "clone",
+        "-lf",
+        "--config",
+        "application.properties",
+        "https://example.test/repository.git"
+);
+
+if (!result.success()) {
+    result.diagnostics().forEach(System.err::println);
+    return;
+}
+
+var commandLine = result.commandLine().orElseThrow();
+
+System.out.println(commandLine.command().orElseThrow());
+System.out.println(commandLine.hasOption("--long-form"));
+System.out.println(commandLine.optionValue("--config").orElseThrow());
+System.out.println(commandLine.argument("source").orElseThrow());
+System.out.println(commandLine.argument("destination").orElseThrow());
 ```
-#       -> mandatory user input
-!       -> single option, other options are not allowed
+
+Aliases resolve to the same logical option:
+
+```java
+commandLine.hasOption("--long-form");
+commandLine.hasOption("-lf");
 ```
 
-### Arguments form:
+Both expressions refer to the same option occurrence.
 
-```
-argument=<default value>    -> NOT mandatory; user input OR dafault value
-argument=#                  -> mandatory; user input; no default value provided for argument
-```
+Render help or a manual from the same `CliSpec`:
 
-Example 1:
-
-```
-argument=sudokufile.txt		-> NOT mandatory (because it has default value); user input OR dafault value
-
-$ sudoku --d=enable --print-to=SudokuLog.log SudokuInputFile.txt
-- "SudokuInputFile.txt" argument overrides default "sudoku.txt" argument
-$ sudoku --d=enable --print-to=SudokuLog.log
-- argument has default value "sudokufile.txt"
+```java
+String help = JCmdArgs.help(spec, "mytool");
+String manual = JCmdArgs.manual(spec, "mytool");
 ```
 
-Example 2:
+JCmdArgs returns strings; it does not print them or write files automatically.
 
-```
-argument=#	-> mandatory; user input; no default value provided for argument
+For the public API overview, see [`docs/public-api.md`](docs/public-api.md).
 
-$ git clone https://github.com/sandulachedumitru/JCmdArgs.git
-- user must input value for the argument because is mandatory
+## JCA 1.0 quick reference
+
+### Options
+
+Flag:
+
+```properties
+option={--verbose,-v}
 ```
+
+Standalone option:
+
+```properties
+option=!{--help,-h}
+```
+
+A standalone option is intended for terminal operations such as help or version and may bypass otherwise required command-line elements.
+
+Required option with a free value:
+
+```properties
+option=+{--config,-c}=#
+```
+
+Enum option with an implicit value:
+
+```properties
+option={--debug,-d}={disable,enable}
+```
+
+When present without an explicit value, the first declared value is the implicit value:
+
+```text
+--debug          -> disable
+--debug=enable   -> enable
+```
+
+Enum option whose value is mandatory:
+
+```properties
+option={--mode,-m}=#{fast,slow}
+```
+
+Free value with an implicit value:
+
+```properties
+option={--print-to,-pt}={Logs.txt,#}
+```
+
+```text
+--print-to          -> Logs.txt
+--print-to=out.log  -> out.log
+```
+
+Option aliases are atomic exact matches. For example:
+
+```properties
+option={--long-form,-lf}
+```
+
+means that `-lf` is one alias. It is not interpreted as `-l -f`.
+
+### Positional arguments
+
+Required:
+
+```properties
+argument=source=#
+```
+
+Optional without a default:
+
+```properties
+argument=destination=?
+```
+
+Defaulted:
+
+```properties
+argument=destination=repository
+```
+
+A quoted special character is a literal:
+
+```properties
+argument=value="#"
+```
+
+### Argument count assertion
+
+```properties
+arguments_number=2
+```
+
+`arguments_number` is optional. When present, it is a compile-time assertion and must match the number of `argument=` declarations.
+
+### Order policy
+
+```properties
+allowed_arguments_order={command,option,argument}
+```
+
+When omitted, ordering is flexible where parsing remains unambiguous.
+
+### End of options
+
+At runtime, the standard end-of-options marker is supported:
+
+```text
+--
+```
+
+After `--`, remaining tokens are interpreted as positional arguments even when they start with `-`.
+
+## Documentation
+
+Documentation is explicitly bound to semantic targets:
+
+```properties
+doc.summary="Repository clone utility."
+doc.description="Longer application description."
+
+doc.command.clone.summary="Clone a repository."
+doc.option.--help.summary="Show help and exit."
+doc.argument.source.summary="Source repository."
+```
+
+For an option such as:
+
+```properties
+option={--long-form,-lf}
+```
+
+documentation targets the primary alias:
+
+```properties
+doc.option.--long-form.summary="Use the long output form."
+```
+
+The secondary alias `-lf` is still a valid runtime alias, but it is not a separate documentation identity.
+
+The renderers derive structural facts such as aliases, required markers, allowed values, implicit values and defaults from `CliSpec`. Those facts do not need to be repeated in prose.
+
+## Diagnostics
+
+Invalid contracts and invalid command lines return structured diagnostics rather than printing or logging automatically.
+
+A diagnostic contains:
+
+- stable code;
+- severity;
+- message;
+- optional source location.
+
+Examples of compiler codes:
+
+```text
+JCA103  option alias collision
+JCA203  argument count mismatch
+JCA501  unknown documentation target
+```
+
+Examples of runtime codes:
+
+```text
+CLI001  unknown option
+CLI005  required option missing
+CLI103  required command missing
+CLI201  standalone option conflict
+```
+
+The full language and diagnostic contract is documented in:
+
+- [`docs/jca-1.0-specification.md`](docs/jca-1.0-specification.md)
+- [`docs/jca-1.0-test-matrix.md`](docs/jca-1.0-test-matrix.md)
+
+## Design documents
+
+- [`docs/jca-1.0-specification.md`](docs/jca-1.0-specification.md) — language and behavior contract
+- [`docs/jca-1.0-test-matrix.md`](docs/jca-1.0-test-matrix.md) — acceptance and diagnostic matrix
+- [`docs/jca-1.0-architecture.md`](docs/jca-1.0-architecture.md) — Java 21 architecture
+- [`docs/future-roadmap.md`](docs/future-roadmap.md) — deliberately deferred features and product direction
+
+## Scope of JCA 1.0
+
+The current baseline deliberately does not attempt to implement every CLI feature.
+
+Examples of deferred capabilities include:
+
+- nested subcommands;
+- repeatable options;
+- mutually exclusive option groups;
+- environment/config fallback;
+- shell completion;
+- response files;
+- typed/constrained values;
+- reusable `.jca` fragments;
+- IDE/LSP tooling.
+
+These belong to the roadmap rather than the JCA 1.0 core.
+
+## Project status
+
+The Java 21 core rewrite is functional and covered by the repository test suite.
+
+The project has not yet declared a stable `1.0.0` release. Maven publication coordinates and release metadata should be considered provisional until that release is prepared.
+
+## License
+
+JCmdArgs is licensed under the GNU General Public License v3.0. See [`LICENSE`](LICENSE).

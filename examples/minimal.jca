@@ -1,0 +1,11 @@
+arguments_number=1
+
+option=!{--help,-h}
+option={--verbose,-v}
+
+argument=input=#
+
+doc.summary="Example command-line tool."
+doc.option.--help.summary="Show help and exit."
+doc.option.--verbose.summary="Enable verbose output."
+doc.argument.input.summary="Input file to process."
