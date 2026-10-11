@@ -1,0 +1,18 @@
+Arguments
+============
+- no more than 2 items for argument list:
+	argument={Logs.txt,#}
+- arguments list
+	- only one item from argument list could/must be input user
+	- the other should be default value and can't be input user (#)
+- user input (#) allowed more than 1: ex: [minus 2 1] or [plus 3 4]
+	argument=#
+	argument=#
+	argument=#
+- can't begin with "-", because it is only for options
+
+
+Commands
+==========
+- user input (#) not allowed allowed
+- can't begin with "-", because it is only for options

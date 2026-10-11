@@ -4,6 +4,8 @@ import com.hardcodacii.jcmdargs.module.cmd_line_parser.model.*;
 import com.hardcodacii.jcmdargs.module.cmd_line_parser.service.CommandLineParserService;
 import com.hardcodacii.jcmdargs.module.commons.global.SystemEnvironmentVariable;
 import com.hardcodacii.jcmdargs.module.definitions_file_parser.model.Definition;
+import com.hardcodacii.jcmdargs.module.definitions_file_parser.model.DefinitionNonOption;
+import com.hardcodacii.jcmdargs.module.definitions_file_parser.model.DefinitionOption;
 import com.hardcodacii.jcmdargs.module.definitions_file_parser.model.DefinitionType;
 import com.hardcodacii.logsindentation.service.DisplayService;
 import com.hardcodacii.logsindentation.service.ErrorService;
@@ -39,11 +41,11 @@ public class CommandLineParserServiceImpl implements CommandLineParserService {
 				"--inputFile=MySudokuFile.txt"
 		};
 
-		cmdParameterProcessor(arguments);
+		cmdParameterProcessor(arguments, definitionsMap);
 		return Optional.empty();
 	}
 
-	private void cmdParameterProcessor(String[] args) {
+	private void cmdParameterProcessor(String[] args, Map<DefinitionType, List<Definition>> definitionsMap) {
 		// parse the command line parameters
 		displayService.infoLn("Get parameters info by parsing the command line");
 		var infoList = parseCmdLineParameters(args);
@@ -55,14 +57,14 @@ public class CommandLineParserServiceImpl implements CommandLineParserService {
 
 		// check supported parameter and value for options
 		displayService.infoLn("Check supported parameters and values for options");
-		var supported = getSupported(infoList);
+		var supported = getSupported(infoList, definitionsMap);
 		displayService.emptyLine();
 
 		errorService.displayErrors();
 	}
 
 	public List<CmdLineParamInfo> parseCmdLineParameters(String... args) {
-		List<CmdLineParamInfo> infoList = new ArrayList<>();
+		List<CmdLineParamInfo> paramInfoList = new ArrayList<>();
 
 		var regexCmdOptions = environment.REGEX_OPTION_GENERAL;
 		var patternCmdOption = Pattern.compile(regexCmdOptions);
@@ -140,23 +142,23 @@ public class CommandLineParserServiceImpl implements CommandLineParserService {
 				info.setType(CmdLineParamType.OPTION);
 				info.setOptsProperties(properties);
 
-				infoList.add(info);
+				paramInfoList.add(info);
 			} else {
 				displayService.infoLn("\t\tPARAMETER: {}", arg);
 				info.setExpression(arg);
-				infoList.add(info);
+				paramInfoList.add(info);
 			}
 
 			displayService.emptyLine();
 		}
 
-		return infoList;
+		return paramInfoList;
 	}
 
-	private Map<CmdLineDuplicates, Integer> getDuplicates(List<CmdLineParamInfo> infoList) {
+	private Map<CmdLineDuplicates, Integer> getDuplicates(List<CmdLineParamInfo> paramInfoList) {
 		Map<CmdLineDuplicates, Integer> duplicates = new HashMap<>();
 
-		for (var info : infoList) {
+		for (var info : paramInfoList) {
 			var dupl = new CmdLineDuplicates();
 
 			// check duplicated options
@@ -198,10 +200,92 @@ public class CommandLineParserServiceImpl implements CommandLineParserService {
 		return duplicates;
 	}
 
-	private List<CmdLineSupportedParam> getSupported(List<CmdLineParamInfo> infoList) {
+	private List<CmdLineSupportedParam> getSupported(List<CmdLineParamInfo> paramInfoList, Map<DefinitionType, List<Definition>> definitionsMap) {
 		List<CmdLineSupportedParam> supportedParamList = new ArrayList<>();
 
+		for (var paramInfo : paramInfoList) {
+			var supportedParam = new CmdLineSupportedOptionAndValues();
+
+			// check parameters: OPTION
+			if (paramInfo.getType() == CmdLineParamType.OPTION) {
+				supportedParam = checkCmdLineOptionNameAndValue(paramInfo, definitionsMap);
+			}
+
+			// check parameters: ARGUMENT, COMMAND
+			else {
+				supportedParam = checkCmdLineNonOptionParameter(paramInfo, definitionsMap);
+			}
+
+			supportedParamList.add(supportedParam);
+		}
 
 		return supportedParamList;
+	}
+
+	private static CmdLineSupportedOptionAndValues checkCmdLineOptionNameAndValue(CmdLineParamInfo paramInfo, Map<DefinitionType, List<Definition>> definitionsMap) {
+		var SUPPORTED = true;
+		var NOT_SUPPORTED = false;
+
+		var isOptNameSupported = NOT_SUPPORTED;
+		DefinitionOption defIdentifiedOpt = null;
+
+		var optDefList = definitionsMap.get(DefinitionType.OPTION);
+		var suppParam = new CmdLineSupportedOptionAndValues();
+		suppParam.setParamInfo(paramInfo);
+
+		// check cmd line option name
+		for (var definition : optDefList) {
+			if (! (definition instanceof DefinitionOption)) break;
+			var def = (DefinitionOption) definition;
+			if (def.getOptsDefinitions().contains(paramInfo.getOptsProperties().getName())) {
+				isOptNameSupported = SUPPORTED;
+				defIdentifiedOpt = def;
+				break;
+			}
+		}
+
+		// check cmd line option value
+		if (isOptNameSupported) {
+			var isOptValueSupported = NOT_SUPPORTED;
+			var defAllowedValues = defIdentifiedOpt.getAllowedValues();
+			var paramInfoValue = paramInfo.getOptsProperties().getValue();
+
+			if (defAllowedValues.contains(paramInfoValue)) {
+				isOptValueSupported = SUPPORTED;
+			} else {
+				suppParam.setUnsupportedValue(paramInfoValue);
+			}
+
+			suppParam.setSupported(isOptValueSupported);
+		} else {
+			suppParam.setUnsupportedOptionsDef(paramInfo.getOptsProperties().getName());
+		}
+
+		return suppParam;
+	}
+
+	private static CmdLineSupportedOptionAndValues checkCmdLineNonOptionParameter(CmdLineParamInfo paramInfo, Map<DefinitionType, List<Definition>> definitionsMap) {
+		var SUPPORTED = true;
+		var NOT_SUPPORTED = false;
+
+		var isOptNameSupported = NOT_SUPPORTED;
+		DefinitionNonOption defIdentifiedOpt = null;
+
+		var argDefList = definitionsMap.get(DefinitionType.ARGUMENT);
+		var suppParam = new CmdLineSupportedOptionAndValues();
+		suppParam.setParamInfo(paramInfo);
+
+		// check parameters: ARGUMENT, COMMAND, UNKNOWN
+		for (var definition : argDefList) {
+			if (! (definition instanceof DefinitionNonOption)) break;
+			var def = (DefinitionNonOption) definition;
+			if (def.getPossibleValues().contains(paramInfo.getOptsProperties().getName())) {
+				isOptNameSupported = SUPPORTED;
+				defIdentifiedOpt = def;
+				break;
+			}
+		}
+
+		return suppParam;
 	}
 }
