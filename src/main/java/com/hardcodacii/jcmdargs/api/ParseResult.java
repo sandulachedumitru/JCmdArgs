@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * Immutable result of parsing one command-line invocation.
+ */
 public record ParseResult(
         Optional<ParsedCommandLine> commandLine,
         List<Diagnostic> diagnostics

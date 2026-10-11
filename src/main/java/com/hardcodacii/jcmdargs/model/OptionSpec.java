@@ -4,6 +4,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Semantic definition of one logical option and all of its aliases.
+ */
 public record OptionSpec(
         String primaryAlias,
         List<String> aliases,

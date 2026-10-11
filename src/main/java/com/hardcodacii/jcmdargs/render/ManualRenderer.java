@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * Renders extended CLI documentation from an immutable CLI specification.
+ */
 public final class ManualRenderer {
 
     private final UsageRenderer usageRenderer = new UsageRenderer();

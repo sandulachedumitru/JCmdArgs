@@ -3,6 +3,9 @@ package com.hardcodacii.jcmdargs.diagnostic;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * Structured compiler or runtime diagnostic.
+ */
 public record Diagnostic(
         String code,
         DiagnosticSeverity severity,

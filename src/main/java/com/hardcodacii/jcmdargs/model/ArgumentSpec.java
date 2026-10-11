@@ -2,6 +2,9 @@ package com.hardcodacii.jcmdargs.model;
 
 import java.util.Objects;
 
+/**
+ * Semantic definition of a named positional argument.
+ */
 public record ArgumentSpec(
         String name,
         int position,

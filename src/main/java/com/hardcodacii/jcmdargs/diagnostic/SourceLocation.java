@@ -2,6 +2,9 @@ package com.hardcodacii.jcmdargs.diagnostic;
 
 import java.util.Objects;
 
+/**
+ * Location of a diagnostic in a named JCA source.
+ */
 public record SourceLocation(
         String sourceName,
         int line,

@@ -5,6 +5,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 
+/**
+ * Named JCA source content supplied to the compiler.
+ */
 public record JcaSource(
         String name,
         String content

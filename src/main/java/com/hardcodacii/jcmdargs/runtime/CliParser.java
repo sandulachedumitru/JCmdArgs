@@ -22,8 +22,18 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * Parses one command-line invocation against an immutable CLI specification.
+ */
 public final class CliParser {
 
+    /**
+     * Parses a single invocation. All mutable parsing state is local to this call.
+     *
+     * @param spec compiled CLI specification
+     * @param args command-line tokens
+     * @return parse result
+     */
     public ParseResult parse(CliSpec spec, String... args) {
         Objects.requireNonNull(spec, "spec");
         Objects.requireNonNull(args, "args");

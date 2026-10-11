@@ -10,6 +10,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * Immutable successful command-line parse result.
+ */
 public final class ParsedCommandLine {
 
     private final Optional<String> command;

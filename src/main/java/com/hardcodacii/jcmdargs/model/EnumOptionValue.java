@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * Option value policy restricted to a fixed set of allowed values.
+ */
 public record EnumOptionValue(
         List<String> allowedValues,
         Optional<String> implicitValue

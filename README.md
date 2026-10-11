@@ -410,4 +410,17 @@ The project has not yet declared a stable `1.0.0` release. Maven publication coo
 
 ## License
 
-JCmdArgs is licensed under the GNU General Public License v3.0. See [`LICENSE`](LICENSE).
+JCmdArgs is distributed under the **JCmdArgs Community License 1.0**.
+
+The license permits broad use, study, modification, and redistribution while
+requiring attribution to Hardcodacii. Before the first commercial distribution
+of JCmdArgs, a derivative, or a product that commercially distributes JCmdArgs,
+the distributor must send an informational notification to
+`hardcodacii@hotmail.com`.
+
+Internal use by a company does not by itself trigger the notification
+requirement.
+
+This is a source-available license and is not represented as an OSI-approved
+open-source license. See [`LICENSE`](LICENSE) for the complete terms and
+[`NOTICE`](NOTICE) for attribution information.

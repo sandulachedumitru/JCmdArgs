@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * Renders concise terminal help from an immutable CLI specification.
+ */
 public final class HelpRenderer {
 
     private static final int GAP = 4;

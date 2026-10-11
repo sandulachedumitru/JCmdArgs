@@ -8,6 +8,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * Immutable semantic representation of a compiled command-line contract.
+ */
 public final class CliSpec {
 
     private final Optional<CommandSpec> command;

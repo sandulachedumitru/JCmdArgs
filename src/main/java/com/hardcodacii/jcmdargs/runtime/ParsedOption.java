@@ -3,6 +3,9 @@ package com.hardcodacii.jcmdargs.runtime;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * One parsed option occurrence, including the alias matched at runtime.
+ */
 public record ParsedOption(
         String primaryAlias,
         String matchedAlias,

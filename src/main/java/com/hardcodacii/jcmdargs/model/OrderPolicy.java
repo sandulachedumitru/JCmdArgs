@@ -4,6 +4,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Required relative order of command, option, and positional argument categories.
+ */
 public record OrderPolicy(List<ArgumentCategory> categories) {
     public OrderPolicy {
         Objects.requireNonNull(categories, "categories");

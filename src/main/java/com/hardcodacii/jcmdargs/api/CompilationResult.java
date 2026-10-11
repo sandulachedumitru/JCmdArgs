@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * Immutable result of compiling a JCA contract.
+ */
 public record CompilationResult(
         Optional<CliSpec> cliSpec,
         List<Diagnostic> diagnostics
