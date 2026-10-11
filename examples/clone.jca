@@ -1,0 +1,28 @@
+arguments_number=2
+allowed_arguments_order={command,option,argument}
+
+command=clone
+
+option=!{--help,-h}
+option={--debug,-d}={disable,enable}
+option={--long-form,-lf}
+option=+{--config,-c}=#
+option={--print-to,-pt}={Logs.txt,#}
+
+argument=source=#
+argument=destination=repository
+
+doc.summary="Repository clone utility."
+doc.description="""
+Clone a repository into a destination directory using a declarative
+command-line contract.
+"""
+
+doc.command.clone.summary="Clone a repository."
+doc.option.--help.summary="Show help and exit."
+doc.option.--debug.summary="Control debug output."
+doc.option.--long-form.summary="Use the long output form."
+doc.option.--config.summary="Configuration file to use."
+doc.option.--print-to.summary="Write output to a file."
+doc.argument.source.summary="Source repository or directory."
+doc.argument.destination.summary="Destination directory."
