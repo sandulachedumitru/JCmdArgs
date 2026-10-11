@@ -1,6 +1,6 @@
 # JCmdArgs — JCA 1.0 Test Matrix
 
-**Status:** Draft 0.2  
+**Status:** Draft 0.3 — implementation-aligned  
 **Date:** 2026-10-11  
 **Java baseline:** Java 21  
 **Purpose:** Executable behavioral contract for the JCA 1.0 rewrite.
@@ -450,21 +450,27 @@ doc.option.--long-form.summary="Use the long output form."
 
 Expected: documentation attached to the logical option represented by both aliases.
 
-### DOC-004 — Short alias may resolve same logical option
+### DOC-004 — Secondary alias is not a documentation identity
 
 ```properties
 option={--long-form,-lf}
 doc.option.-lf.summary="Use the long output form."
 ```
 
-Expected: documentation attaches to the same option.
+Expected:
 
-### DOC-005 — Duplicate documentation through aliases
+```text
+JCA501 UNKNOWN_DOCUMENTATION_TARGET
+```
+
+Documentation must target the exact primary alias `--long-form`.
+
+### DOC-005 — Duplicate documentation field on primary alias
 
 ```properties
 option={--long-form,-lf}
 doc.option.--long-form.summary="Long form."
-doc.option.-lf.summary="Another summary."
+doc.option.--long-form.summary="Another summary."
 ```
 
 Expected:
@@ -565,7 +571,36 @@ argument=destination=?
 
 Help renderer represents the argument as optional without inventing a default.
 
-## 10. End-of-options marker
+## 10. Command runtime tests
+
+### COMMAND-001 — Declared command is required in a normal invocation
+
+```properties
+command=clone
+```
+
+Empty CLI input must fail with:
+
+```text
+CLI103 REQUIRED_COMMAND_MISSING
+```
+
+### COMMAND-002 — Standalone option bypasses required command
+
+```properties
+command=clone
+option=!{--help,-h}
+```
+
+CLI:
+
+```text
+--help
+```
+
+Expected: valid standalone invocation; no `CLI103`.
+
+## 11. End-of-options marker
 
 ```properties
 option={--long-form,-lf}
@@ -580,7 +615,7 @@ CLI:
 
 Expected: positional `value = --long-form`; option is absent.
 
-## 11. Order policy tests
+## 12. Order policy tests
 
 With:
 
@@ -599,14 +634,14 @@ argument=source=#
 CLI301 ARGUMENT_ORDER_VIOLATION
 ```
 
-## 12. State isolation tests
+## 13. State isolation tests
 
 - sequential JCA compilations do not share definitions;
 - failed compilation cannot poison later compilation;
 - concurrent compilations do not cross-contaminate state;
 - runtime parsers do not mutate `CliSpec`.
 
-## 13. Side-effect tests
+## 14. Side-effect tests
 
 Compilation and runtime parsing must:
 
@@ -674,18 +709,34 @@ clone --help
 
 Expected: valid even though required option `--config` and required argument `source` are absent.
 
-## 15. Initial diagnostic registry additions
+## 16. Diagnostic registry
 
 ### JCA
 
 | Code | Meaning |
 |---|---|
+| JCA001 | Syntax error / malformed declaration |
+| JCA002 | Unknown definition |
 | JCA101 | Option alias required |
+| JCA102 | Duplicate alias inside one option |
 | JCA103 | Option alias collision |
+| JCA104 | Invalid option alias |
+| JCA105 | Empty enum value set |
+| JCA106 | Duplicate option value |
+| JCA107 | Invalid option value specification |
 | JCA108 | Incompatible option modifiers |
+| JCA201 | Duplicate argument name |
+| JCA202 | Invalid argument name/layout |
 | JCA203 | Argument count mismatch |
+| JCA204 | Legacy unnamed argument syntax |
 | JCA205 | Invalid argument count |
-| JCA207 | Required argument after optional |
+| JCA206 | Duplicate `arguments_number` declaration |
+| JCA207 | Required argument after optional/default argument |
+| JCA301 | Invalid command |
+| JCA302 | Multiple command definitions |
+| JCA401 | Unknown argument category |
+| JCA402 | Duplicate argument category |
+| JCA403 | Order policy incomplete |
 | JCA501 | Unknown documentation target |
 | JCA502 | Duplicate documentation field |
 | JCA503 | Invalid documentation field |
@@ -702,11 +753,12 @@ Expected: valid even though required option `--config` and required argument `so
 | CLI005 | Required option missing |
 | CLI101 | Required positional argument missing |
 | CLI102 | Too many positional arguments |
+| CLI103 | Required command missing |
 | CLI201 | Standalone option conflict |
 | CLI301 | Argument order violation |
 | CLI401 | Option repeated |
 
-## 16. Definition of Done for the first Java 21 core
+## 17. Definition of Done for the first Java 21 core
 
 The new core is eligible to replace the legacy parser only when:
 
@@ -725,7 +777,7 @@ The new core is eligible to replace the legacy parser only when:
 - no core stdout/stderr side effects occur;
 - structured diagnostics cover invalid JCA and invalid runtime input.
 
-## 17. Deliberately deferred tests
+## 18. Deliberately deferred tests
 
 No implementation tests should be written yet for:
 

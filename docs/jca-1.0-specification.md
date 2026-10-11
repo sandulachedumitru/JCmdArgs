@@ -1,7 +1,7 @@
 # JCmdArgs — JCA 1.0 Specification Draft
 
 **Date:** 2026-10-11  
-**Status:** Draft 0.3 — language contract consolidation  
+**Status:** Draft 0.4 — implementation-aligned JCA 1.0 baseline — language contract consolidation  
 **Java baseline:** Java 21  
 **Scope:** JCmdArgs core DSL, documentation model and runtime parsing contract
 
@@ -618,7 +618,21 @@ Displays output using the long form rather than the compact form.
 
 The source retains `--`; the documentation syntax does not hide that the target is an option.
 
-If an option has both long and short aliases, documentation attached through either exact alias refers to the same logical option. Defining the same field twice through different aliases is a duplicate-documentation error.
+Option documentation targets the option's **primary alias exactly**, including its `-` / `--` prefix.
+
+For:
+
+```properties
+option={--long-form,-lf}
+```
+
+the documentation target is:
+
+```properties
+doc.option.--long-form.summary="Use the long output form."
+```
+
+The secondary alias `-lf` remains a fully valid runtime alias, but it is not a second documentation identity. Therefore `doc.option.-lf...` is rejected with `JCA501 UNKNOWN_DOCUMENTATION_TARGET`. This keeps one stable documentation target per logical option.
 
 ### 14.4 Argument documentation
 
@@ -776,6 +790,24 @@ Arguments:
 
 Exact formatting belongs to `HelpRenderer`, not to the JCA grammar.
 
+### 17.1 Renderer contract for the Java 21 baseline
+
+The initial Java 21 renderers consume `CliSpec` only. They do not re-read `.jca`, write files, print to stdout/stderr or invoke the runtime parser.
+
+`HelpRenderer` provides concise terminal help and derives structural metadata from `CliSpec`, including:
+
+- exact aliases;
+- required/standalone option markers;
+- allowed enum values;
+- implicit option values;
+- required/optional positional shape;
+- positional defaults.
+
+`ManualRenderer` additionally includes authored `description` fields and the same derived structural metadata.
+
+`UsageRenderer` derives the usage shape from the command, the presence of options and positional argument semantics. An optional program name may be supplied by the caller; it is not part of the `.jca` contract.
+
+
 ## 18. Runtime result semantics
 
 A successful parse should expose semantic data rather than raw parser artifacts.
@@ -813,6 +845,23 @@ public record Diagnostic(
 ```
 
 Callers decide how diagnostics are displayed or logged.
+
+### 19.1 Runtime diagnostic codes implemented by the Java 21 baseline
+
+| Code | Meaning |
+|---|---|
+| `CLI001` | Unknown option |
+| `CLI002` | Option does not accept a value |
+| `CLI003` | Invalid option value |
+| `CLI004` | Option value required |
+| `CLI005` | Required option missing |
+| `CLI101` | Required positional argument missing |
+| `CLI102` | Too many positional arguments |
+| `CLI103` | Required command missing |
+| `CLI201` | Standalone option conflict |
+| `CLI301` | Argument order violation |
+| `CLI401` | Option repeated |
+
 
 ## 20. Features deliberately deferred beyond the initial JCA 1.0 baseline
 
@@ -881,19 +930,30 @@ The rewrite should preserve recovered behavior, not legacy class structure.
 
 The new Java 21 implementation should be built around immutable models and stateless compiler/parser components. Legacy Spring services, action performers, filesystem help generation and logging/display dependencies are not architectural constraints for the rewrite.
 
-## 23. Decisions still requiring explicit approval before JCA 1.0 freeze
+## 23. JCA 1.0 language baseline accepted for the Java 21 rewrite
 
-Draft 0.3 proposes two new syntax elements that should be treated as draft until accepted:
+The following syntax is accepted for the current JCA 1.0 implementation baseline:
 
 1. `+` before an option alias set means **required option**.
 2. `?` in positional argument value position means **optional argument without default**.
+3. `=#{...}` defines an enum whose value is mandatory when the option occurs.
 
-It also proposes the required-enum syntax:
+Example:
 
 ```properties
 option={--mode,-m}=#{fast,slow}
 ```
 
-Repeatable options and nested subcommands are deliberately deferred.
+`!` (standalone) and `+` (required) are mutually exclusive. If an author attempts to combine them, compilation reports:
 
-Once these items are accepted or adjusted, the JCA 1.0 language surface can be frozen for the Java 21 implementation baseline.
+```text
+JCA108 INCOMPATIBLE_OPTION_MODIFIERS
+```
+
+A required positional argument may not follow an optional/default positional argument. Such a declaration reports:
+
+```text
+JCA207 REQUIRED_ARGUMENT_AFTER_OPTIONAL
+```
+
+Repeatable options, nested subcommands and the other roadmap features remain deliberately deferred. Changes to this JCA 1.0 language baseline should now be explicit design decisions rather than incidental implementation changes.

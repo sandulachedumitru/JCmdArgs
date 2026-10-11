@@ -76,4 +76,23 @@ class DocumentationValidationTest {
                         .orElseThrow()
         );
     }
+    @Test
+    void rejectsDocumentationTargetUsingSecondaryOptionAlias() {
+        var result = new JcaCompiler().compile(
+                JcaSource.of(
+                        "docs.jca",
+                        """
+                        option={--long-form,-lf}
+                        doc.option.-lf.summary="Use the long output form."
+                        """
+                )
+        );
+
+        assertFalse(result.success());
+        assertEquals(
+                "JCA501",
+                result.diagnostics().getFirst().code()
+        );
+    }
+
 }

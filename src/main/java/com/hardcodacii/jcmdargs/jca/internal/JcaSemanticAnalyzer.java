@@ -19,7 +19,6 @@ import com.hardcodacii.jcmdargs.model.OrderPolicy;
 import com.hardcodacii.jcmdargs.model.RequiredArgumentValue;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -179,7 +178,7 @@ public final class JcaSemanticAnalyzer {
         for (OptionDeclaration declaration : declarations) {
             if (declaration.required() && declaration.standalone()) {
                 diagnostics.add(Diagnostic.error(
-                        "JCA107",
+                        "JCA108",
                         "An option cannot be both required and standalone.",
                         declaration.sourceLocation()
                 ));
@@ -307,7 +306,7 @@ public final class JcaSemanticAnalyzer {
 
             if (optionalSeen && required) {
                 diagnostics.add(Diagnostic.error(
-                        "JCA202",
+                        "JCA207",
                         "A required positional argument cannot follow an optional/default argument.",
                         declaration.sourceLocation()
                 ));
@@ -402,7 +401,7 @@ public final class JcaSemanticAnalyzer {
         for (String rawCategory : declaration.categories()) {
             ArgumentCategory category = switch (
                     rawCategory.toLowerCase(Locale.ROOT)
-            ) {
+                    ) {
                 case "command" -> ArgumentCategory.COMMAND;
                 case "option" -> ArgumentCategory.OPTION;
                 case "argument" -> ArgumentCategory.ARGUMENT;

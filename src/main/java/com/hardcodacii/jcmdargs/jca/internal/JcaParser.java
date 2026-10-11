@@ -6,7 +6,6 @@ import com.hardcodacii.jcmdargs.jca.JcaSource;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -129,21 +128,32 @@ public final class JcaParser {
         boolean required = false;
         boolean standalone = false;
 
-        if (body.startsWith("+")) {
-            required = true;
-            body = body.substring(1).trim();
-        } else if (body.startsWith("!")) {
-            standalone = true;
-            body = body.substring(1).trim();
-        }
+        while (body.startsWith("+") || body.startsWith("!")) {
+            char modifier = body.charAt(0);
 
-        if (body.startsWith("+") || body.startsWith("!")) {
-            diagnostics.add(Diagnostic.error(
-                    "JCA001",
-                    "Only one option modifier is allowed.",
-                    location
-            ));
-            return null;
+            if (modifier == '+') {
+                if (required) {
+                    diagnostics.add(Diagnostic.error(
+                            "JCA001",
+                            "Required option modifier '+' may appear only once.",
+                            location
+                    ));
+                    return null;
+                }
+                required = true;
+            } else {
+                if (standalone) {
+                    diagnostics.add(Diagnostic.error(
+                            "JCA001",
+                            "Standalone option modifier '!' may appear only once.",
+                            location
+                    ));
+                    return null;
+                }
+                standalone = true;
+            }
+
+            body = body.substring(1).trim();
         }
 
         if (!body.startsWith("{")) {

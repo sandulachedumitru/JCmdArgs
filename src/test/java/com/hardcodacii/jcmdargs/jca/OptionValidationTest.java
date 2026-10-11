@@ -60,4 +60,20 @@ class OptionValidationTest {
                 result.diagnostics().getFirst().code()
         );
     }
+    @Test
+    void rejectsRequiredStandaloneModifierCombination() {
+        var result = new JcaCompiler().compile(
+                JcaSource.of(
+                        "invalid-modifiers.jca",
+                        "option=+!{--help,-h}"
+                )
+        );
+
+        assertFalse(result.success());
+        assertEquals(
+                "JCA108",
+                result.diagnostics().getFirst().code()
+        );
+    }
+
 }
