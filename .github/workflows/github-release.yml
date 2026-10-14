@@ -1,0 +1,156 @@
+name: GitHub Release
+
+on:
+  push:
+    tags:
+      - '*.*.*'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify tag on Java 21 / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+
+    steps:
+      - name: Check out tagged revision
+        uses: actions/checkout@v7
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Verify package (Linux)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: bash ./mvnw --batch-mode --no-transfer-progress clean verify
+
+      - name: Verify package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: .\mvnw.cmd --batch-mode --no-transfer-progress clean verify
+
+  release:
+    name: Publish GitHub Release
+    needs: verify
+    runs-on: ubuntu-24.04
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out tagged revision
+        uses: actions/checkout@v7
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Validate release tag and Maven version
+        id: release_meta
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          TAG="${GITHUB_REF_NAME}"
+
+          if [[ ! "$TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9][A-Za-z0-9.-]*)?$ ]]; then
+            echo "Unsupported release tag: $TAG"
+            echo "Expected examples: 1.0.0 or 1.0.0-RC2"
+            exit 1
+          fi
+
+          VERSION="$(bash ./mvnw --batch-mode --no-transfer-progress help:evaluate \
+            -Dexpression=project.version \
+            -q \
+            -DforceStdout)"
+
+          if [[ "$VERSION" != "$TAG" ]]; then
+            echo "Tag/POM version mismatch."
+            echo "Tag:         $TAG"
+            echo "POM version: $VERSION"
+            exit 1
+          fi
+
+          if [[ "$TAG" == *-* ]]; then
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Build release artifacts
+        shell: bash
+        run: bash ./mvnw --batch-mode --no-transfer-progress clean package
+
+      - name: Generate SHA-256 checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          VERSION="${{ steps.release_meta.outputs.version }}"
+
+          cd target
+          sha256sum \
+            "jcmdargs-${VERSION}.jar" \
+            "jcmdargs-${VERSION}-sources.jar" \
+            "jcmdargs-${VERSION}-javadoc.jar" \
+            > SHA256SUMS
+
+          cat SHA256SUMS
+
+      - name: Create GitHub pre-release
+        if: steps.release_meta.outputs.prerelease == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          VERSION="${{ steps.release_meta.outputs.version }}"
+
+          gh release create "$GITHUB_REF_NAME" \
+            "target/jcmdargs-${VERSION}.jar" \
+            "target/jcmdargs-${VERSION}-sources.jar" \
+            "target/jcmdargs-${VERSION}-javadoc.jar" \
+            "target/SHA256SUMS" \
+            --verify-tag \
+            --generate-notes \
+            --title "JCmdArgs ${VERSION}" \
+            --prerelease \
+            --latest=false
+
+      - name: Create GitHub stable release
+        if: steps.release_meta.outputs.prerelease == 'false'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          VERSION="${{ steps.release_meta.outputs.version }}"
+
+          gh release create "$GITHUB_REF_NAME" \
+            "target/jcmdargs-${VERSION}.jar" \
+            "target/jcmdargs-${VERSION}-sources.jar" \
+            "target/jcmdargs-${VERSION}-javadoc.jar" \
+            "target/SHA256SUMS" \
+            --verify-tag \
+            --generate-notes \
+            --title "JCmdArgs ${VERSION}" \
+            --latest
