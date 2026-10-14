@@ -2,6 +2,8 @@ name: Maven Verify
 
 on:
   push:
+    branches:
+      - '**'
   pull_request:
   workflow_dispatch:
 
@@ -10,8 +12,15 @@ permissions:
 
 jobs:
   verify:
-    name: Java 21 / Maven Verify
-    runs-on: ubuntu-latest
+    name: Java 21 / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
 
     steps:
       - name: Check out repository
@@ -24,12 +33,26 @@ jobs:
           java-version: '21'
           cache: maven
 
-      - name: Show Java and Maven versions
+      - name: Show Java and Maven versions (Linux)
+        if: runner.os != 'Windows'
         shell: bash
         run: |
           java -version
           bash ./mvnw -version
 
-      - name: Run tests and verify package
+      - name: Show Java and Maven versions (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          java -version
+          .\mvnw.cmd -version
+
+      - name: Run tests and verify package (Linux)
+        if: runner.os != 'Windows'
         shell: bash
         run: bash ./mvnw --batch-mode --no-transfer-progress clean verify
+
+      - name: Run tests and verify package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: .\mvnw.cmd --batch-mode --no-transfer-progress clean verify
